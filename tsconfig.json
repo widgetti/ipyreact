@@ -15,7 +15,8 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "target": "es2015",
-    "types": ["jest"]
+    "types": ["jest"],
+    "jsx": "react"
   },
   "include": [
     "src/**/*.ts",

@@ -33,8 +33,9 @@ classifiers = [
 ]
 dependencies = [
     "ipywidgets>=7.0.0",
+    "anywidget>=0.2.0",
 ]
-version = "0.1.0.dev0"
+version = "0.1.0"
 
 [project.optional-dependencies]
 docs = [
@@ -48,9 +49,11 @@ docs = [
     "sphinx_rtd_theme",
 ]
 examples = []
-test = [
-    "nbval",
-    "pytest-cov",
+unit-test = [
+    "pytest>=6.0",
+]
+ui-test = [
+    "solara[pytest]",
     "pytest>=6.0",
 ]
 
@@ -65,9 +68,9 @@ artifacts = [
 ]
 
 [tool.hatch.build.targets.wheel.shared-data]
-"ipyreact/nbextension" = "share/jupyter/nbextensions/ipyreact"
-"ipyreact/labextension" = "share/jupyter/labextensions/ipyreact"
-"./install.json" = "share/jupyter/labextensions/ipyreact/install.json"
+"ipyreact/nbextension" = "share/jupyter/nbextensions/jupyter-react"
+"ipyreact/labextension" = "share/jupyter/labextensions/jupyter-react"
+"./install.json" = "share/jupyter/labextensions/jupyter-react/install.json"
 "./ipyreact.json" = "etc/jupyter/nbconfig/notebook.d/ipyreact.json"
 
 [tool.hatch.build.targets.sdist]
@@ -104,7 +107,7 @@ file = [
 ]
 
 [tool.tbump.version]
-current = "0.1.0.dev0"
+current = "0.1.0"
 regex = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)((?P<channel>a|b|rc|.dev)(?P<release>\\d+))?"
 
 [tool.tbump.git]

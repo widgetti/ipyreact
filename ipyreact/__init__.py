@@ -4,8 +4,9 @@
 # Copyright (c) Maarten A. Breddels.
 # Distributed under the terms of the Modified BSD License.
 
-from .example import ExampleWidget
 from ._version import __version__, version_info
+from .widget import ReactWidget
+
 
 def _jupyter_labextension_paths():
     """Called by Jupyter Lab Server to detect if it is a valid labextension and
@@ -47,3 +48,7 @@ def _jupyter_nbextension_paths():
         'dest': 'ipyreact',
         'require': 'ipyreact/extension'
     }]
+
+def load_ipython_extension(ipython):
+    from .cellmagic import load_ipython_extension
+    load_ipython_extension(ipython)

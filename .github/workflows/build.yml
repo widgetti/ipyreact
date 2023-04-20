@@ -2,43 +2,148 @@ name: Build
 
 on:
   push:
-    branches: main
+    branches:
+      - master
   pull_request:
-    branches: "*"
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.7", "3.10"]
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
-
-      - name: Install dependencies
-        run: |
-          python -m pip install -U codecov
-          npm install -g codecov
-      - name: Test the extension
-        run: |
-          python -m pip install --upgrade -v -e ".[test, examples, docs]"
-          python -m pytest
-          yarn run test
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
 
       - name: Linting
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           yarn run lint:check
 
-      - name: Check docs can be build + links
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        working-directory: docs
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: pip install hatch wheel jupyterlab
+
+      # - name: Change version for non-releases
+      #   if: ${{ ! startsWith(github.event.ref, 'refs/tags/v')}}
+      #   run: python .github/ci_version.py
+
+      - name: Package js
+        run: (npm ci && npm run build:prod && npm pack)
+
+      - name: Package
+        run: hatch build
+
+      - name: Upload builds
+        uses: actions/upload-artifact@v3
+        with:
+          name: ipyreact-dist-${{ github.run_number }}
+          path: |
+            ./dist
+            ./*.tgz
+
+
+  test:
+    needs: [build]
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ipyreact-dist-${{ github.run_number }}
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: pip install `echo dist/*.whl`[unit-test] "jupyter_server<2"
+
+      - name: Run unit tests
+        run: pytest tests/unit
+
+  ui-test:
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ipyreact-dist-${{ github.run_number }}
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install ipyreact
+        run: pip install `echo dist/*.whl`[ui-test] "jupyter_server<2"
+
+      - name: Install playwright browsers
+        run: playwright install chromium
+
+      - name: Run ui-tests
+        run: pytest tests/ui/ --video=retain-on-failure
+
+      - name: Upload Test artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ipyreact-test-results-${{ github.run_number }}
+          path: test-results
+
+  release:
+    if: startsWith(github.event.ref, 'refs/tags/v')
+    needs: [test, ui-test]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: ipyreact-dist-${{ github.run_number }}
+
+      - name: Install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
         run: |
-          sudo apt install -y pandoc
-          make html
-          python -m pytest --check-links
+          python -m pip install --upgrade pip
+          pip install twine wheel jupyter-packaging jupyterlab
+
+      - name: Publish the Python package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload --skip-existing dist/*
+
+      - name: Publish the NPM package
+        run: |
+          echo $PRE_RELEASE
+          if [[ $PRE_RELEASE == "true" ]]; then export TAG="next"; else export TAG="latest"; fi
+          npm publish --tag ${TAG} --access public *.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PRE_RELEASE: ${{ github.event.release.prerelease }}
