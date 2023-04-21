@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+     - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -137,7 +139,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload --skip-existing dist/*
+        run: twine upload --skip-existing dist/*.whl dist/*.tar.gz
 
       - name: Publish the NPM package
         run: |
