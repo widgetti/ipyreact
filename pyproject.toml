@@ -7,6 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ipyreact"
+dynamic = ["version"]
 description = "React for ipywidgets that just works"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
@@ -35,7 +36,6 @@ dependencies = [
     "ipywidgets>=7.0.0",
     "anywidget>=0.2.0",
 ]
-version = "0.1.0"
 
 [project.optional-dependencies]
 docs = [
@@ -59,6 +59,9 @@ ui-test = [
 
 [project.urls]
 Homepage = "https://github.com/widgetti/ipyreact"
+
+[tool.hatch.version]
+path = "ipyreact/_version.py"
 
 [tool.hatch.build]
 artifacts = [
