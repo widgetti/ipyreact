@@ -45,8 +45,8 @@ def _jupyter_nbextension_paths():
     return [{
         'section': 'notebook',
         'src': 'nbextension',
-        'dest': 'ipyreact',
-        'require': 'ipyreact/extension'
+        'dest': 'jupyter-react',
+        'require': 'jupyter-react/extension'
     }]
 
 def load_ipython_extension(ipython):
