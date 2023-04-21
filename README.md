@@ -5,7 +5,11 @@ React for ipywidgets that just works. No webpack, no npm, no hassle. Just write 
 
 Build on top of [AnyWidget](https://anywidget.dev/).
 
-## Example
+## Goal
+
+Take any [Material UI example](https://mui.com/material-ui/react-rating/), copy/paste the code, and it should work in Jupyter Notebook, Jupyter Lab, Voila, and more specifically, [Solara](https://github.com/widgetti/solara).
+
+## Examples
 
 ### Inline code
 
