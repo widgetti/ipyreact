@@ -108,6 +108,7 @@ pip install ipyreact
  * Your code gets transpiled using [sucrase](https://github.com/alangpierce/sucrase) in the frontend, no bundler needed.
  * Your code should be written in ES modules.
  * Set `debug=True` to get more debug information in the browser console (also accessible in the props).
+ * Make sure you export a default function from your module (e.g. `export default function MyComponent() { ... }`). This is the component that will be rendered.
 
 ### Import maps
 
