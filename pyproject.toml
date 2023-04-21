@@ -69,8 +69,8 @@ artifacts = [
 
 [tool.hatch.build.targets.wheel.shared-data]
 "ipyreact/nbextension" = "share/jupyter/nbextensions/jupyter-react"
-"ipyreact/labextension" = "share/jupyter/labextensions/jupyter-react"
-"./install.json" = "share/jupyter/labextensions/jupyter-react/install.json"
+"ipyreact/labextension" = "share/jupyter/labextensions/@widgetti/jupyter-react"
+"./install.json" = "share/jupyter/labextensions/@widgetti/jupyter-react/install.json"
 "./ipyreact.json" = "etc/jupyter/nbconfig/notebook.d/ipyreact.json"
 
 [tool.hatch.build.targets.sdist]

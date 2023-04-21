@@ -6,7 +6,7 @@ define(function() {
     window['requirejs'].config({
         map: {
             '*': {
-                'jupyter-react': 'nbextensions/jupyter-react/index',
+                '@widgetti/jupyter-react': 'nbextensions/jupyter-react/index',
                 // 'jupyter-react16': 'nbextensions/ipyreact/index16',
             },
         }
