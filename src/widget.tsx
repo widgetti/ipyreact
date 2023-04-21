@@ -40,7 +40,14 @@ async function ensureImportShimLoaded() {
 }
 
 function autoExternalReactResolve(id: string, parentUrl: string, resolve: (arg0: any, arg1: any) => any) {
-  if(id != "react" && id != "react-dom" && !id.includes("react@")&& !id.includes("react-dom@") && (parentUrl.startsWith("https://esm.sh/") || id.startsWith("@mui")) && !(id.includes("?external=react,react-dom") || parentUrl.includes("?external=react,react-dom"))) {
+  const shipsWith = (id == "react") || (id == "react-dom");
+  const alreadyPatched = parentUrl.includes("?external=react,react-dom");
+  const parentIsEsmSh = parentUrl.startsWith("https://esm.sh/");
+  const isBlob = id.startsWith("blob:");
+  if(!shipsWith && !id.includes("://") && !parentIsEsmSh) {
+    id = "https://esm.sh/" + id;
+  }
+  if(!shipsWith && !alreadyPatched && !isBlob) {
     id = id + "?external=react,react-dom";
   }
   // console.log("resolve", id, parentUrl, resolve)
@@ -192,7 +199,10 @@ export class ReactView extends DOMWidgetView {
           };
           // @ts-ignore
           importShim.addImportMap(importMap);
-          setMuiFix(await setUpMuiFixModule());
+          const needsMuiFix = compiledCode.indexOf("@mui") !== -1;
+          if(needsMuiFix) {
+            setMuiFix(await setUpMuiFixModule());
+          }
           url = URL.createObjectURL(
             new Blob([finalCode], { type: "text/javascript" }),
           );
