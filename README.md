@@ -104,7 +104,7 @@ pip install ipyreact
 
  * The ReactWidget has an `value` trait, which is a `traitlets.Any` trait. Use this to pass data to your react component, or to get data back from your react component.
  * All traits are added as props to your react component (e.g. `{value, ...}` in th example above.
- * For every trait we also add a `on_<traitname>` callback, which you can use to set the trait value from your react component (e.g. `on_value` in the example above).
+ * For every trait `ipyreact` automatically provides a `on_<traitname>` callback, which you can use to set the trait value from your react component (e.g. `on_value` in the example above).
  * Your code gets transpiled using [sucrase](https://github.com/alangpierce/sucrase) in the frontend, no bundler needed.
  * Your code should be written in ES modules.
  * Set `debug=True` to get more debug information in the browser console (also accessible in the props).
