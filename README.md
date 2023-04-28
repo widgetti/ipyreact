@@ -1,9 +1,6 @@
 
 # ipyreact
 
-Binder Link:
-https://mybinder.org/v2/gh/kolibril13/ipyreact/binder?labpath=examples%2Ffull_tutorial.ipynb
-(needs to be updated to the main repo)
 
 
 React for ipywidgets that just works. No webpack, no npm, no hassle. Just write jsx, tsx and python.
