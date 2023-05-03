@@ -167,6 +167,24 @@ export class ReactView extends DOMWidgetView {
         }
       }, [this.model.get('_esm')])
       const props : any = {}
+      for (const event_name of this.model.attributes["_event_names"]) {
+        const handler = (value : any, buffers : any) => {
+          if (buffers) {
+              const validBuffers = buffers instanceof Array &&
+                  buffers[0] instanceof ArrayBuffer;
+              if (!validBuffers) {
+                  console.warn('second argument is not an BufferArray[View] array')
+                  buffers = undefined;
+              }
+          }
+          this.model.send(
+            {event_name, data: value},
+            this.model.callbacks(this),
+            buffers,
+          );
+        }
+        props["on_" + event_name] = handler;
+      }
       for (const key of Object.keys(this.model.attributes)) {
         props[key] = this.model.get(key);
         props["on_" + key] = (value: any) => {

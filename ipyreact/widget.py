@@ -12,7 +12,7 @@ from pathlib import Path
 
 import anywidget
 from ipywidgets import DOMWidget
-from traitlets import Any, Bool, Dict, Int, Unicode
+from traitlets import Any, Bool, Dict, Int, List, Unicode
 
 from ._frontend import module_name, module_version
 
@@ -32,6 +32,7 @@ class ReactWidget(anywidget.AnyWidget):
     debug = Bool(False).tag(sync=True)
     name = Unicode(None, allow_none=True).tag(sync=True)
     react_version = Int(18).tag(sync=True)
+    _event_names = List(Unicode(), allow_none=True).tag(sync=True)
     _cdn = Unicode("https://esm.sh/").tag
     _import_map = Dict({}).tag(sync=True)
     _import_map_default = {
@@ -58,5 +59,21 @@ class ReactWidget(anywidget.AnyWidget):
             },
         }
         kwargs["_import_map"] = _import_map
-        super().__init__(**kwargs)
+        _ignore = ["on_msg", "on_displayed", "on_trait_change", "on_widget_constructed"]
+        _event_names = [method_name[3:] for method_name in dir(self) if method_name.startswith("on_") and method_name not in _ignore]
+        super().__init__(**{"_event_names": _event_names, **kwargs})
+        self.on_msg(self._handle_event)
 
+
+    def _handle_event(self, _, content, buffers):
+        if "event_name" in content.keys():
+            event_name = content.get("event_name", "")
+            data = content.get("data", {})
+            method = getattr(self, "on_" + event_name)
+            if "data" not in content:
+                method()
+            else:
+                if buffers:
+                    method(data, buffers)
+                else:
+                    method(data)
