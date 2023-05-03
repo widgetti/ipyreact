@@ -1,14 +1,12 @@
 
 # ipyreact
 
-Binder Link:
-https://mybinder.org/v2/gh/kolibril13/ipyreact/binder?labpath=examples%2Ffull_tutorial.ipynb
-(needs to be updated to the main repo)
-
-
 React for ipywidgets that just works. No webpack, no npm, no hassle. Just write jsx, tsx and python.
 
 Build on top of [AnyWidget](https://anywidget.dev/).
+
+This tutorial at https://mybinder.org/v2/gh/kolibril13/ipyreact/binder?labpath=examples%2Ffull_tutorial.ipynb
+(needs to be updated to the main repo) will walk you through the building blocks of building a complete ipywidget with react. From the small beginning steps, to styling, to interactivty through react. Along the way you will see best practices for bridging the gap from react practicers to jupyter notebook practices. By the end you will be on your way to writing stable reliable jupyter widgets with react.
 
 ## Goal
 
