@@ -5,6 +5,9 @@ React for ipywidgets that just works. No webpack, no npm, no hassle. Just write 
 
 Build on top of [AnyWidget](https://anywidget.dev/).
 
+This tutorial at https://mybinder.org/v2/gh/kolibril13/ipyreact/binder?labpath=examples%2Ffull_tutorial.ipynb
+(needs to be updated to the main repo) will walk you through the building blocks of building a complete ipywidget with react. From the small beginning steps, to styling, to interactivty through react. Along the way you will see best practices for bridging the gap from react practicers to jupyter notebook practices. By the end you will be on your way to writing stable reliable jupyter widgets with react.
+
 ## Goal
 
 Take any [Material UI example](https://mui.com/material-ui/react-rating/), copy/paste the code, and it should work in Jupyter Notebook, Jupyter Lab, Voila, and more specifically, [Solara](https://github.com/widgetti/solara).
