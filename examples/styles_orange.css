@@ -3,5 +3,5 @@ button {
     border-color: orange;
     font-weight: bold;
     border-width: 2.5px;
-
+    user-select: none;
 }
