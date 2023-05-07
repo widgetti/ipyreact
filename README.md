@@ -35,8 +35,8 @@ class ConfettiWidget(ipyreact.ReactWidget):
     import confetti from "canvas-confetti";
     import * as React from "react";
 
-    export default function({value, on_value, debug}) {
-        return <button onClick={() => confetti() && on_value(value + 1)}>
+    export default function({value, set_value, debug}) {
+        return <button onClick={() => confetti() && set_value(value + 1)}>
             {value || 0} times confetti
         </button>
     };"""
@@ -55,8 +55,8 @@ Create a tsx file:
 import confetti from "canvas-confetti";
 import * as React from "react";
 
-export default function({value, on_value, debug}) {
-    return <button onClick={() => confetti() && on_value(value + 1)}>
+export default function({value, set_value, debug}) {
+    return <button onClick={() => confetti() && set_value(value + 1)}>
         {value || 0} times confetti
     </button>
 };
@@ -91,8 +91,8 @@ Then use the `%%react` magic to directly write jsx/tsx in your notebook:
 import confetti from "canvas-confetti";
 import * as React from "react";
 
-export default function({value, on_value, debug}) {
-    return <button onClick={() => confetti() && on_value(value + 1)}>
+export default function({value, set_value, debug}) {
+    return <button onClick={() => confetti() && set_value(value + 1)}>
         {value || 0} times confetti
     </button>
 };
@@ -117,7 +117,7 @@ pip install ipyreact
 
  * The ReactWidget has an `value` trait, which is a `traitlets.Any` trait. Use this to pass data to your react component, or to get data back from your react component.
  * All traits are added as props to your react component (e.g. `{value, ...}` in th example above.
- * For every trait `ipyreact` automatically provides a `on_<traitname>` callback, which you can use to set the trait value from your react component (e.g. `on_value` in the example above).
+ * For every trait `ipyreact` automatically provides a `set_<traitname>` callback, which you can use to set the trait value from your react component (e.g. `set_value` in the example above). (*Note: we used `on_value` before, this is now deprecated*)
  * Your code gets transpiled using [sucrase](https://github.com/alangpierce/sucrase) in the frontend, no bundler needed.
  * Your code should be written in ES modules.
  * Set `debug=True` to get more debug information in the browser console (also accessible in the props).
@@ -149,11 +149,11 @@ import Button from '@mui/material/Button';
 import confetti from "canvas-confetti";
 import * as React from "react";
 
-export default function({value, on_value, debug}) {
+export default function({value, set_value, debug}) {
     if(debug) {
-        console.log("value=", value, on_value);
+        console.log("value=", value, set_value);
     }
-    return <Button variant="contained" onClick={() => confetti() && on_value(value + 1)}>
+    return <Button variant="contained" onClick={() => confetti() && set_value(value + 1)}>
         {value || 0} times confetti
     </Button>
 };
