@@ -188,6 +188,11 @@ export class ReactView extends DOMWidgetView {
       for (const key of Object.keys(this.model.attributes)) {
         props[key] = this.model.get(key);
         props["on_" + key] = (value: any) => {
+          console.warn(`on_${key} is deprecated, use set_${key} instead`);
+          this.model.set(key, value);
+          this.touch();
+        };
+        props["set_" + key] = (value: any) => {
           this.model.set(key, value);
           this.touch();
         };
