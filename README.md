@@ -170,6 +170,11 @@ conda create -n ipyreact-dev -c conda-forge nodejs yarn python jupyterlab
 conda activate ipyreact-dev
 ```
 
+Install the JS dependencies.
+```
+yarn install
+```
+
 Install the python. This will also build the TS package.
 ```bash
 pip install -e ".[test, examples]"
