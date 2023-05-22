@@ -171,6 +171,7 @@ conda activate ipyreact-dev
 ```
 
 Install the python. This will also build the TS package.
+
 ```bash
 pip install -e ".[test, examples]"
 ```
