@@ -32,7 +32,7 @@ jobs:
           python-version: 3.8
 
       - name: Install dependencies
-        run: pip install hatch wheel jupyterlab
+        run: pip install hatch wheel "jupyterlab<4"
 
       # - name: Change version for non-releases
       #   if: ${{ ! startsWith(github.event.ref, 'refs/tags/v')}}
