@@ -11,7 +11,7 @@ Build on top of [AnyWidget](https://anywidget.dev/).
 
  This tutorial will walk you through the steps of building a complete ipywidget with react. 
 
-[![JupyterLight](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://widgetti.github.io/ipyreact/)
+[![JupyterLight](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://widgetti.github.io/ipyreact/lab/?path=full_tutorial.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/widgetti/ipyreact/HEAD?labpath=examples%2Ffull_tutorial.ipynb)
 
 
