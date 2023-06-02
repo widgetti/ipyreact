@@ -171,6 +171,7 @@ conda activate ipyreact-dev
 ```
 
 Install the python. This will also build the TS package.
+
 ```bash
 pip install -e ".[test, examples]"
 ```
@@ -211,4 +212,8 @@ After a change wait for the build to finish and then refresh your browser and th
 
 #### Python:
 If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.
+
+## Example projects
+
+* [jupyter-tldraw](https://github.com/kolibril13/jupyter-tldraw) a pip installable widget built ontop of ipyreact
 
