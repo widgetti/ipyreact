@@ -44,13 +44,7 @@ class ReactWidget(anywidget.AnyWidget):
         "scopes": {
         },
     }
-    _esm = """
-    import * as React from "react";
-
-    export default function App() {
-        <p>Welcome to ipyreact!</p>
-    }
-    """
+    _esm = HERE / Path("basic.tsx")
 
     def __init__(self, **kwargs) -> None:
         _import_map = kwargs.pop("_import_map", {})
