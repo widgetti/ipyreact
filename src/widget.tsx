@@ -22,6 +22,7 @@ import { MODULE_NAME, MODULE_VERSION } from './version';
 // import 'es-module-shims';
 import { transform } from 'sucrase';
 import { ErrorBoundary } from './components';
+import { Root } from "react-dom/client";
 
 
 // @ts-ignore
@@ -108,6 +109,8 @@ export class ReactModel extends DOMWidgetModel {
 
 
 export class ReactView extends DOMWidgetView {
+  private root: Root | null = null;
+
   render() {
     // @ts-ignore
     window.React18FromIpyReact = React;
@@ -280,12 +283,16 @@ export class ReactView extends DOMWidgetView {
       }
     }
     if(this.model.get("react_version") === 18) {
-      const root = ReactDOMClient.createRoot(this.el);
-      root.render(<ErrorBoundary><Component></Component></ErrorBoundary>);
+      this.root = ReactDOMClient.createRoot(this.el);
+      this.root.render(<ErrorBoundary><Component></Component></ErrorBoundary>);
       } else {
         // @ts-ignore
         // ReactDOM16.render(<Component></Component>, this.el);
       
     }
+  }
+
+  remove() {
+    this.root?.unmount();
   }
 }
