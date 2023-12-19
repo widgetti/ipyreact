@@ -14,7 +14,7 @@ import * as ReactDOM from 'react-dom';
 import * as ReactDOMClient from 'react-dom/client';
 // @ts-ignore
 import '../css/widget.css';
-import { loadScript, setUpMuiFixModule, setUpReact16ESM, setUpReact18ESM } from './utils';
+import { expose, loadScript, setUpMuiFixModule } from './utils';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 // import * as Babel from '@babel/standalone';
 // TODO: find a way to ship es-module-shims with the widget
@@ -62,17 +62,17 @@ window.esmsInitOptions = { shimMode: true,
 let react18ESMUrls : any = null;
 let react16ESMUrls : any = null;
 
-async function ensureReactSetup(version: number) {
+function ensureReactSetup(version: number) {
   if(version == 18) {
     if(react18ESMUrls == null) {
-      react18ESMUrls = setUpReact18ESM();
+      react18ESMUrls = {urlReact: expose(React), urlReactDom: expose(ReactDOM)};
     }
-    return await react18ESMUrls;
+    return react18ESMUrls;
   } else if(version == 16) {
     if(react16ESMUrls == null) {
-      react16ESMUrls = setUpReact16ESM();
+      // react16ESMUrls = {urlReact: expose(React16), urlReactDom: expose(ReactDOM16)};
     }
-    return await react16ESMUrls;
+    return react16ESMUrls;
   }
 }
 
@@ -109,14 +109,6 @@ export class ReactModel extends DOMWidgetModel {
 
 export class ReactView extends DOMWidgetView {
   render() {
-    // @ts-ignore
-    window.React18FromIpyReact = React;
-    // @ts-ignore
-    // window.React16FromIpyReact = React16;
-    // @ts-ignore
-    window.ReactDOM18FromIpyReact = ReactDOM;
-    // @ts-ignore
-    // window.ReactDOM16FromIpyReact = ReactDOM16;
     this.el.classList.add('jupyter-react-widget');
     // using babel is a bit of an art, so leaving this code for if we 
     // want to switch back to babel. However, babel is very large compared
@@ -207,7 +199,7 @@ export class ReactView extends DOMWidgetView {
             setScope(compiledCode);
             return;
           }
-          const {urlReact, urlReactDom} = await ensureReactSetup(this.model.get("react_version"));
+          const {urlReact, urlReactDom} = ensureReactSetup(this.model.get("react_version"));
           await ensureImportShimLoaded();
           let finalCode = compiledCode;
           // @ts-ignore
