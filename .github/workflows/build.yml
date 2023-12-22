@@ -5,7 +5,7 @@ on:
     branches:
       - master
     tags:
-     - 'v*'
+      - "v*"
   pull_request:
   workflow_dispatch:
 
@@ -51,7 +51,6 @@ jobs:
           path: |
             ./dist
             ./*.tgz
-
 
   test:
     needs: [build]

@@ -39,8 +39,6 @@
     "clean:lib": "rimraf lib",
     "clean:labextension": "rimraf ipyreact/labextension",
     "clean:nbextension": "rimraf ipyreact/nbextension/static/index.js",
-    "lint": "eslint . --ext .ts,.tsx --fix",
-    "lint:check": "eslint . --ext .ts,.tsx",
     "prepack": "yarn run build:lib",
     "test": "jest",
     "watch": "npm-run-all -p watch:*",

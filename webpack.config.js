@@ -1,41 +1,42 @@
-const path = require('path');
-const version = require('./package.json').version;
+const path = require("path");
+const version = require("./package.json").version;
 
 // Custom webpack rules
 const rules = [
-  { test: /\.mjs$/i,
-   use: [
-    {
-      loader: 'raw-loader',
-      options: {
-        esModule: false,
+  {
+    test: /\.mjs$/i,
+    use: [
+      {
+        loader: "raw-loader",
+        options: {
+          esModule: false,
+        },
       },
-    },
-  ], },
-  { test: /\.ts$/, loader: 'ts-loader' },
-  { test: /\.tsx$/, loader: 'ts-loader' },
-  { test: /\.js$/, loader: 'source-map-loader' },
-  { test: /\.css$/, use: ['style-loader', 'css-loader']}
+    ],
+  },
+  { test: /\.ts$/, loader: "ts-loader" },
+  { test: /\.tsx$/, loader: "ts-loader" },
+  { test: /\.js$/, loader: "source-map-loader" },
+  { test: /\.css$/, use: ["style-loader", "css-loader"] },
 ];
 
 // Packages that shouldn't be bundled but loaded at runtime
-const externals = ['@jupyter-widgets/base'];
+const externals = ["@jupyter-widgets/base"];
 
 const resolve = {
   // Add '.ts' and '.tsx' as resolvable extensions.
-  extensions: [".webpack.js", ".web.js", ".ts", ".js", ".tsx", ".jsx"]
+  extensions: [".webpack.js", ".web.js", ".ts", ".js", ".tsx", ".jsx"],
 };
 
 const resolve16 = {
   // Add '.ts' and '.tsx' as resolvable extensions.
   extensions: [".webpack.js", ".web.js", ".ts", ".js", ".tsx", ".jsx"],
   alias: {
-    "react": "react16",
+    react: "react16",
     "react-dom": "react-dom16",
-    "react-dom/client": path.resolve(__dirname, 'src/client_react16.js')
-  }
+    "react-dom/client": path.resolve(__dirname, "src/client_react16.js"),
+  },
 };
-
 
 module.exports = [
   /**
@@ -45,17 +46,17 @@ module.exports = [
    * the notebook.
    */
   {
-    entry: './src/extension.ts',
+    entry: "./src/extension.ts",
     output: {
-      filename: 'index.js',
-      path: path.resolve(__dirname, 'ipyreact', 'nbextension'),
-      libraryTarget: 'amd',
-      publicPath: '',
+      filename: "index.js",
+      path: path.resolve(__dirname, "ipyreact", "nbextension"),
+      libraryTarget: "amd",
+      publicPath: "",
     },
     module: {
-      rules: rules
+      rules: rules,
     },
-    devtool: 'source-map',
+    devtool: "source-map",
     externals,
     resolve,
   },
@@ -88,22 +89,22 @@ module.exports = [
    * the custom widget embedder.
    */
   {
-    entry: './src/index.ts',
+    entry: "./src/index.ts",
     output: {
-        filename: 'index.js',
-        path: path.resolve(__dirname, 'dist'),
-        libraryTarget: 'amd',
-        library: "@widgetti/jupyter-react",
-        publicPath: 'https://unpkg.com/@widgetti/jupyter-react@' + version + '/dist/'
+      filename: "index.js",
+      path: path.resolve(__dirname, "dist"),
+      libraryTarget: "amd",
+      library: "@widgetti/jupyter-react",
+      publicPath:
+        "https://unpkg.com/@widgetti/jupyter-react@" + version + "/dist/",
     },
-    devtool: 'source-map',
+    devtool: "source-map",
     module: {
-        rules: rules
+      rules: rules,
     },
     externals,
     resolve,
   },
-
 
   /**
    * Documentation widget bundle
@@ -111,19 +112,18 @@ module.exports = [
    * This bundle is used to embed widgets in the package documentation.
    */
   {
-    entry: './src/index.ts',
+    entry: "./src/index.ts",
     output: {
-      filename: 'embed-bundle.js',
-      path: path.resolve(__dirname, 'docs', 'source', '_static'),
+      filename: "embed-bundle.js",
+      path: path.resolve(__dirname, "docs", "source", "_static"),
       library: "@widgetti/jupyter-react",
-      libraryTarget: 'amd'
+      libraryTarget: "amd",
     },
     module: {
-      rules: rules
+      rules: rules,
     },
-    devtool: 'source-map',
+    devtool: "source-map",
     externals,
     resolve,
-  }
-
+  },
 ];
