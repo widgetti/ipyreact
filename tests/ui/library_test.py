@@ -1,11 +1,11 @@
-import ipyreact
 import playwright.sync_api
 from IPython.display import display
 
-code = \
-"""
+import ipyreact
+
+code = """
 import Button from '@mui/material/Button';
-import * as React from "react"; 
+import * as React from "react";
 
 export default function({value, set_value, debug}) {
     return <Button variant="contained" onClick={() => set_value(value + 1)}>
@@ -14,9 +14,11 @@ export default function({value, set_value, debug}) {
 };
 """
 
+
 def test_material_ui(solara_test, assert_solara_snapshot, page_session: playwright.sync_api.Page):
     class Button(ipyreact.ReactWidget):
         _esm = code
+
     b = Button()
     display(b)
 

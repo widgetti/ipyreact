@@ -1,7 +1,8 @@
 import playwright.sync_api
-from IPython.display import display
-import ipyreact
 import traitlets
+from IPython.display import display
+
+import ipyreact
 
 
 class ButtonWithHandler(ipyreact.ReactWidget):

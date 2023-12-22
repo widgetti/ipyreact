@@ -1,5 +1,6 @@
 import ipyreact
 
+
 def test_create():
     class Counter(ipyreact.ReactWidget):
         _esm = """
@@ -10,4 +11,5 @@ def test_create():
                 {value || 0} clicks
             </button>
         };"""
-    c = Counter()
+
+    Counter()

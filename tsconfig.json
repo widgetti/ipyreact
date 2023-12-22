@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "esModuleInterop":true,
+    "esModuleInterop": true,
     "lib": ["es2015", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
@@ -18,9 +18,6 @@
     "types": ["jest"],
     "jsx": "react"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["src/**/__tests__"]
 }

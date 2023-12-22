@@ -20,10 +20,12 @@ def _jupyter_labextension_paths():
         from `src` directory into <jupyter path>/labextensions/<dest> directory
         during widget installation
     """
-    return [{
-        'src': 'labextension',
-        'dest': 'jupyter-react',
-    }]
+    return [
+        {
+            "src": "labextension",
+            "dest": "jupyter-react",
+        }
+    ]
 
 
 def _jupyter_nbextension_paths():
@@ -42,13 +44,17 @@ def _jupyter_nbextension_paths():
     require: Path to importable AMD Javascript module inside the
         <jupyter path>/nbextensions/<dest> directory
     """
-    return [{
-        'section': 'notebook',
-        'src': 'nbextension',
-        'dest': 'jupyter-react',
-        'require': 'jupyter-react/extension'
-    }]
+    return [
+        {
+            "section": "notebook",
+            "src": "nbextension",
+            "dest": "jupyter-react",
+            "require": "jupyter-react/extension",
+        }
+    ]
+
 
 def load_ipython_extension(ipython):
     from .cellmagic import load_ipython_extension
+
     load_ipython_extension(ipython)

@@ -4,54 +4,66 @@
 import {
   DOMWidgetModel,
   DOMWidgetView,
-  ISerializers
-} from '@jupyter-widgets/base';
+  ISerializers,
+} from "@jupyter-widgets/base";
 
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-import * as ReactJsxRuntime from 'react/jsx-runtime';
-import * as ReactReconcilerContants from  "react-reconciler/constants";
-import * as ReactReconciler from  "react-reconciler";
-import * as ReactDOM from 'react-dom';
+import * as React from "react";
+import { useEffect, useState } from "react";
+import * as ReactJsxRuntime from "react/jsx-runtime";
+import * as ReactReconcilerContants from "react-reconciler/constants";
+import * as ReactReconciler from "react-reconciler";
+import * as ReactDOM from "react-dom";
+
 // @ts-ignore
-import * as ReactDOMClient from 'react-dom/client';
+import * as ReactDOMClient from "react-dom/client";
 // @ts-ignore
-import '../css/widget.css';
-import { expose, loadScript, setUpMuiFixModule } from './utils';
-import { MODULE_NAME, MODULE_VERSION } from './version';
+import "../css/widget.css";
+import { expose, loadScript, setUpMuiFixModule } from "./utils";
+import { MODULE_NAME, MODULE_VERSION } from "./version";
 // import * as Babel from '@babel/standalone';
 // TODO: find a way to ship es-module-shims with the widget
 // @ts-ignore
 // import 'es-module-shims';
-import { transform } from 'sucrase';
-import { ErrorBoundary } from './components';
+import { transform } from "sucrase";
+import { ErrorBoundary } from "./components";
 import { Root } from "react-dom/client";
-
 
 // @ts-ignore
 // const react16Code = require('!!raw-loader!./react16.js');
 // import react16Code from 'raw-loader!./react16.mjs';
 // console.log(react16Code)
 
-
 // this will do for now
-let importShimLoaded : any = null;
+let importShimLoaded: any = null;
 async function ensureImportShimLoaded() {
-  if(importShimLoaded == null) {
-    importShimLoaded = loadScript("module", "https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js")
+  if (importShimLoaded == null) {
+    importShimLoaded = loadScript(
+      "module",
+      "https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js",
+    );
   }
   return await importShimLoaded;
 }
 
-function autoExternalReactResolve(id: string, parentUrl: string, resolve: (arg0: any, arg1: any) => any) {
-  const shipsWith = (id == "react") || (id == "react-dom") || (id == "react/jsx-runtime") || (id == "react-dom/client") || (id == "react-reconciler") || (id == "react-reconciler/constants");
+function autoExternalReactResolve(
+  id: string,
+  parentUrl: string,
+  resolve: (arg0: any, arg1: any) => any,
+) {
+  const shipsWith =
+    id == "react" ||
+    id == "react-dom" ||
+    id == "react/jsx-runtime" ||
+    id == "react-dom/client" ||
+    id == "react-reconciler" ||
+    id == "react-reconciler/constants";
   const alreadyPatched = parentUrl.includes("?external=react,react-dom");
   const parentIsEsmSh = parentUrl.startsWith("https://esm.sh/");
   const isBlob = id.startsWith("blob:");
-  if(!shipsWith && !id.includes("://") && !parentIsEsmSh) {
+  if (!shipsWith && !id.includes("://") && !parentIsEsmSh) {
     id = "https://esm.sh/" + id;
   }
-  if(!shipsWith && !alreadyPatched && !isBlob) {
+  if (!shipsWith && !alreadyPatched && !isBlob) {
     id = id + "?external=react,react-dom";
   }
   // console.log("resolve", id, parentUrl, resolve)
@@ -59,18 +71,23 @@ function autoExternalReactResolve(id: string, parentUrl: string, resolve: (arg0:
 }
 
 // @ts-ignore
-window.esmsInitOptions = { shimMode: true,
-  resolve: (id: string, parentUrl: string, resolve: (id: string, parentUrl: string) => any) => autoExternalReactResolve(id, parentUrl, resolve)
-}
+window.esmsInitOptions = {
+  shimMode: true,
+  resolve: (
+    id: string,
+    parentUrl: string,
+    resolve: (id: string, parentUrl: string) => any,
+  ) => autoExternalReactResolve(id, parentUrl, resolve),
+};
 
-let react18ESMUrls : any = null;
-let react16ESMUrls : any = null;
+let react18ESMUrls: any = null;
+let react16ESMUrls: any = null;
 
 function ensureReactSetup(version: number) {
-  if(version == 18) {
-    if(react18ESMUrls == null) {
+  if (version == 18) {
+    if (react18ESMUrls == null) {
       react18ESMUrls = {
-        "react": expose(React),
+        react: expose(React),
         "react-dom": expose(ReactDOM),
         "react/jsx-runtime": expose(ReactJsxRuntime),
         "react-dom/client": expose(ReactDOMClient),
@@ -79,15 +96,13 @@ function ensureReactSetup(version: number) {
       };
     }
     return react18ESMUrls;
-  } else if(version == 16) {
-    if(react16ESMUrls == null) {
+  } else if (version == 16) {
+    if (react16ESMUrls == null) {
       // react16ESMUrls = {urlReact: expose(React16), urlReactDom: expose(ReactDOM16)};
     }
     return react16ESMUrls;
   }
 }
-
-
 
 export class ReactModel extends DOMWidgetModel {
   defaults() {
@@ -109,21 +124,20 @@ export class ReactModel extends DOMWidgetModel {
     ...DOMWidgetModel.serializers,
   };
 
-  static model_name = 'ReactModel';
+  static model_name = "ReactModel";
   static model_module = MODULE_NAME;
   static model_module_version = MODULE_VERSION;
-  static view_name = 'ReactView'; // Set to null if no view
+  static view_name = "ReactView"; // Set to null if no view
   static view_module = MODULE_NAME; // Set to null if no view
   static view_module_version = MODULE_VERSION;
 }
-
 
 export class ReactView extends DOMWidgetView {
   private root: Root | null = null;
 
   render() {
-    this.el.classList.add('jupyter-react-widget');
-    // using babel is a bit of an art, so leaving this code for if we 
+    this.el.classList.add("jupyter-react-widget");
+    // using babel is a bit of an art, so leaving this code for if we
     // want to switch back to babel. However, babel is very large compared
     // to sucrase
     // Babel.registerPreset("my-preset", {
@@ -140,54 +154,55 @@ export class ReactView extends DOMWidgetView {
     //   18: React18,
     // }[this.model.get("react_version")];
 
-
-
     const Component = () => {
       // @ts-ignore
       // @ts-ignore
       const [_, setCounter] = useState(0);
       const forceRerender = () => {
         setCounter((x) => x + 1);
-      }
+      };
       useEffect(() => {
-        this.listenTo(this.model, 'change', forceRerender);
+        this.listenTo(this.model, "change", forceRerender);
       }, []);
 
-      const compiledCode : string | Error = React.useMemo(() => {
-        const code = this.model.get('_esm');
-        if(this.model.get("debug")) {
+      const compiledCode: string | Error = React.useMemo(() => {
+        const code = this.model.get("_esm");
+        if (this.model.get("debug")) {
           console.log("original code:\n", code);
         }
         try {
           // using babel:
           // return Babel.transform(code,  { presets: ["react", "es2017"], plugins: ["importmap"] }).code;
           // using sucrase:
-          let compiledCode = transform(code, {transforms: ["jsx", "typescript"], filePath: "test.tsx"}).code;
-          if(this.model.get("debug")) {
+          let compiledCode = transform(code, {
+            transforms: ["jsx", "typescript"],
+            filePath: "test.tsx",
+          }).code;
+          if (this.model.get("debug")) {
             console.log("compiledCode:\n", compiledCode);
           }
           return compiledCode;
         } catch (e) {
           return e;
         }
-      }, [this.model.get('_esm')])
-      const props : any = {}
+      }, [this.model.get("_esm")]);
+      const props: any = {};
       for (const event_name of this.model.attributes["_event_names"]) {
-        const handler = (value : any, buffers : any) => {
+        const handler = (value: any, buffers: any) => {
           if (buffers) {
-              const validBuffers = buffers instanceof Array &&
-                  buffers[0] instanceof ArrayBuffer;
-              if (!validBuffers) {
-                  console.warn('second argument is not an BufferArray[View] array')
-                  buffers = undefined;
-              }
+            const validBuffers =
+              buffers instanceof Array && buffers[0] instanceof ArrayBuffer;
+            if (!validBuffers) {
+              console.warn("second argument is not an BufferArray[View] array");
+              buffers = undefined;
+            }
           }
           this.model.send(
-            {event_name, data: value},
+            { event_name, data: value },
             this.model.callbacks(this),
             buffers,
           );
-        }
+        };
         props["on_" + event_name] = handler;
       }
       for (const key of Object.keys(this.model.attributes)) {
@@ -206,92 +221,96 @@ export class ReactView extends DOMWidgetView {
       const [muiFix, setMuiFix] = React.useState(null as any | Error);
 
       React.useEffect(() => {
-        let url : string | null = null;
+        let url: string | null = null;
         (async () => {
           if (compiledCode instanceof Error) {
             setScope(compiledCode);
             return;
           }
-          const reactImportMap = ensureReactSetup(this.model.get("react_version"));
+          const reactImportMap = ensureReactSetup(
+            this.model.get("react_version"),
+          );
           await ensureImportShimLoaded();
           let finalCode = compiledCode;
           // @ts-ignore
           const importMapWidget = this.model.get("_import_map");
           const importMap = {
-            "imports": {
+            imports: {
               ...reactImportMap,
               ...importMapWidget["imports"],
             },
-            "scopes": {
-              ...importMapWidget["scopes"]
-            }
+            scopes: {
+              ...importMapWidget["scopes"],
+            },
           };
           // @ts-ignore
           importShim.addImportMap(importMap);
           const needsMuiFix = compiledCode.indexOf("@mui") !== -1;
-          if(needsMuiFix) {
+          if (needsMuiFix) {
             setMuiFix(await setUpMuiFixModule());
           }
           url = URL.createObjectURL(
             new Blob([finalCode], { type: "text/javascript" }),
           );
-          try{
+          try {
             // @ts-ignore
             let module = await importShim(url);
             let name = this.model.get("name");
-            if(name && name.length > 0) {
+            if (name && name.length > 0) {
               // @ts-ignore
-              importShim.addImportMap({"imports": {[name]: url}});
+              importShim.addImportMap({ imports: { [name]: url } });
             }
             setScope(module);
-            } catch (e) {
+          } catch (e) {
             setScope(e);
           }
         })();
         return () => {
-          if(url) {
+          if (url) {
             URL.revokeObjectURL(url);
           }
-        }
-    }, [compiledCode]);
+        };
+      }, [compiledCode]);
 
       if (!scope) {
         return <div>Loading...</div>;
       } else {
-        if(scope instanceof Error) {
+        if (scope instanceof Error) {
           return <pre>{scope.message}</pre>;
         } else {
-          if(scope.default === undefined) {
+          if (scope.default === undefined) {
             return <div>Missing default component</div>;
           } else {
-            if(this.model.get("debug")) {
+            if (this.model.get("debug")) {
               console.log("props", props);
             }
             // @ts-ignore
-            let el = React.createElement(scope.default, props)
+            let el = React.createElement(scope.default, props);
             // check if @mui string is in compiledCode
             // if so, we need to wrap the element in a style wrapper
             // @ts-ignore
             const needsMuiFix = compiledCode.indexOf("@mui") !== -1;
-            if(this.model.get("debug")) {
+            if (this.model.get("debug")) {
               console.log("needsMuiFix", needsMuiFix);
             }
-            if(needsMuiFix) {
+            if (needsMuiFix) {
               el = muiFix.styleWrapper(el);
             }
             return el;
-            
           }
         }
       }
-    }
-    if(this.model.get("react_version") === 18) {
+    };
+    if (this.model.get("react_version") === 18) {
       this.root = ReactDOMClient.createRoot(this.el);
-      this.root.render(<ErrorBoundary><Component></Component></ErrorBoundary>);
-      } else {
-        // @ts-ignore
-        // ReactDOM16.render(<Component></Component>, this.el);
-      
+      this.root.render(
+        <ErrorBoundary>
+          <Component></Component>
+        </ErrorBoundary>,
+      );
+    } else {
+      // @ts-ignore
+      // ReactDOM16.render(<Component></Component>, this.el);
     }
   }
 
