@@ -9,6 +9,9 @@ import {
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import * as ReactJsxRuntime from 'react/jsx-runtime';
+import * as ReactReconcilerContants from  "react-reconciler/constants";
+import * as ReactReconciler from  "react-reconciler";
 import * as ReactDOM from 'react-dom';
 // @ts-ignore
 import * as ReactDOMClient from 'react-dom/client';
@@ -41,7 +44,7 @@ async function ensureImportShimLoaded() {
 }
 
 function autoExternalReactResolve(id: string, parentUrl: string, resolve: (arg0: any, arg1: any) => any) {
-  const shipsWith = (id == "react") || (id == "react-dom");
+  const shipsWith = (id == "react") || (id == "react-dom") || (id == "react/jsx-runtime") || (id == "react-dom/client") || (id == "react-reconciler") || (id == "react-reconciler/constants");
   const alreadyPatched = parentUrl.includes("?external=react,react-dom");
   const parentIsEsmSh = parentUrl.startsWith("https://esm.sh/");
   const isBlob = id.startsWith("blob:");
@@ -66,7 +69,14 @@ let react16ESMUrls : any = null;
 function ensureReactSetup(version: number) {
   if(version == 18) {
     if(react18ESMUrls == null) {
-      react18ESMUrls = {urlReact: expose(React), urlReactDom: expose(ReactDOM)};
+      react18ESMUrls = {
+        "react": expose(React),
+        "react-dom": expose(ReactDOM),
+        "react/jsx-runtime": expose(ReactJsxRuntime),
+        "react-dom/client": expose(ReactDOMClient),
+        "react-reconciler": expose(ReactReconciler),
+        "react-reconciler/constants": expose(ReactReconcilerContants),
+      };
     }
     return react18ESMUrls;
   } else if(version == 16) {
@@ -202,18 +212,19 @@ export class ReactView extends DOMWidgetView {
             setScope(compiledCode);
             return;
           }
-          const {urlReact, urlReactDom} = ensureReactSetup(this.model.get("react_version"));
+          const reactImportMap = ensureReactSetup(this.model.get("react_version"));
           await ensureImportShimLoaded();
           let finalCode = compiledCode;
           // @ts-ignore
           const importMapWidget = this.model.get("_import_map");
           const importMap = {
             "imports": {
-              "react": urlReact,
-              "react-dom": urlReactDom,
-              ...importMapWidget["imports"]
+              ...reactImportMap,
+              ...importMapWidget["imports"],
             },
-            "scopes": importMapWidget["scopes"]
+            "scopes": {
+              ...importMapWidget["scopes"]
+            }
           };
           // @ts-ignore
           importShim.addImportMap(importMap);
