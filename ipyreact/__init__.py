@@ -5,7 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from ._version import __version__
-from .widget import ReactWidget
+from .widget import ReactWidget, ValueWidget, Widget
 
 
 def _jupyter_labextension_paths():

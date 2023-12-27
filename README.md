@@ -25,13 +25,13 @@ Take any [Material UI example](https://mui.com/material-ui/react-rating/), copy/
 import ipyreact
 
 
-class ConfettiWidget(ipyreact.ReactWidget):
+class ConfettiWidget(ipyreact.ValueWidget):
     _esm = """
     import confetti from "canvas-confetti";
     import * as React from "react";
 
-    export default function({value, set_value, debug}) {
-        return <button onClick={() => confetti() && set_value(value + 1)}>
+    export default function({value, setValue, debug}) {
+        return <button onClick={() => confetti() && setValue(value + 1)}>
             {value || 0} times confetti
         </button>
     };"""
@@ -90,8 +90,8 @@ Then use the `%%react` magic to directly write jsx/tsx in your notebook:
 import confetti from "canvas-confetti";
 import * as React from "react";
 
-export default function({value, set_value, debug}) {
-    return <button onClick={() => confetti() && set_value(value + 1)}>
+export default function({value, setValue, debug}) {
+    return <button onClick={() => confetti() && setValue(value + 1)}>
         {value || 0} times confetti
     </button>
 };

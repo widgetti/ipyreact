@@ -81,3 +81,35 @@ export async function loadScript(type: string, src: string) {
     };
   });
 }
+
+// based on https://stackoverflow.com/a/58416333/5397207
+function pickSerializable(object: any, depth = 0, max_depth = 2) {
+  // change max_depth to see more levels, for a touch event, 2 is good
+  if (depth > max_depth) return "Object";
+
+  const obj: any = {};
+  for (let key in object) {
+    let value = object[key];
+    if (value instanceof Window) value = "Window";
+    else if (value && value.getModifierState)
+      value = pickSerializable(value, depth + 1, max_depth);
+    else {
+      // test if serializable
+      try {
+        JSON.stringify(value);
+      } catch (e) {
+        value = "Object";
+      }
+    }
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+export function eventToObject(event: any) {
+  if (event instanceof Event || (event && event.getModifierState)) {
+    return pickSerializable(event);
+  }
+  return event;
+}

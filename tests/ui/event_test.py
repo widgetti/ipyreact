@@ -16,7 +16,7 @@ class ButtonWithHandler(ipyreact.ReactWidget):
         };
     """
 
-    def on_click(self):
+    def event_on_click(self):
         self.label = "Clicked"
 
 

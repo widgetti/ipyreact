@@ -12,8 +12,8 @@ def test_widget_ipyreact(
             _esm = """
             import * as React from "react";
 
-            export default function({value, on_value, debug}) {
-                return <button class="counter-widget" onClick={() => on_value(value + 1)}>
+            export default function({value, setValue, debug}) {
+                return <button class="counter-widget" onClick={() => setValue(value + 1)}>
                     {value || 0} clicks
                 </button>
             };"""
