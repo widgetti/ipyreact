@@ -123,25 +123,21 @@ function ensureReactSetup(version: number) {
   }
 }
 
-const widgetToReactElement = async (
-  widget: WidgetModel,
-  rootView: WidgetView | null = null,
-) => {
+const widgetToReactComponent = async (widget: WidgetModel) => {
   const WidgetRenderHOC = (widget: WidgetModel) => {
-    return () => {
+    return ({ view }: { view: WidgetView | null }) => {
       return <div>widget placeholder</div>;
     };
   };
   if (widget instanceof ReactModel) {
-    const ChildComponent: any = await widget.component;
-    const el = <ChildComponent view={rootView}></ChildComponent>;
-    return el;
+    return await widget.component;
+    // const el = <ChildComponent view={rootView}></ChildComponent>;
+    // return el;
   } else if (typeof widget === "string") {
-    return widget;
+    return () => widget;
   } else {
     const ChildComponent = WidgetRenderHOC(widget);
-    const el = <ChildComponent></ChildComponent>;
-    return el;
+    return ChildComponent;
   }
 };
 
@@ -346,16 +342,16 @@ export class ReactModel extends DOMWidgetModel {
   async createWrapperComponent() {
     // we wrap the component in a wrapper that puts in all the props from the
     // widget model, and handles events, etc
-    const childrenToReactElement = async (view: any) => {
+    const childrenToReactComponents = async (view: any) => {
       let childrenWidgets: Array<WidgetModel> = this.get("children");
       return await Promise.all(
         childrenWidgets.map(
-          async (child: any) => await widgetToReactElement(child, view),
+          async (child: any) => await widgetToReactComponent(child),
         ),
       );
     };
 
-    let initialChildren = await childrenToReactElement(null);
+    let initialChildrenComponents = await childrenToReactComponents(null);
     // const resolveFormatters = async () => {
     //   let formatterDict = this.get("formatters") || {};
     //   let formatterModules : any = {};
@@ -416,11 +412,13 @@ export class ReactModel extends DOMWidgetModel {
         );
         setForceRerenderCounter((x) => x + 1);
       };
-      const [children, setChildren] = useState(initialChildren);
+      const [childrenComponents, setChildrenComponents] = useState(
+        initialChildrenComponents,
+      );
       const updateChildren = () => {
         console.log("update children");
         (async () => {
-          setChildren(await childrenToReactElement(view));
+          setChildrenComponents(await childrenToReactComponents(view));
         })();
       };
       useEffect(() => {
@@ -432,8 +430,6 @@ export class ReactModel extends DOMWidgetModel {
           }
           this.listenTo(this, `change:${key}`, updateChildren);
         }
-
-        updateChildren(); // how can we avoid that we have to re-render to pass in the view
         return () => {
           this.stopListening(this, "change:props", forceRerender);
           this.stopListening(this, "change:children", updateChildren);
@@ -475,6 +471,9 @@ export class ReactModel extends DOMWidgetModel {
       //   }
       // }
       // console.log("children", children);
+      let children = childrenComponents.map((ChildComponent: any) => {
+        return <ChildComponent view={view}></ChildComponent>;
+      });
       const childrenProps = children.length > 0 ? { children: children } : {};
       // useEffect(() => {
       //   // force render every 2 seconds
