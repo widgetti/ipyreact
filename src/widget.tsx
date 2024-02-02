@@ -417,9 +417,9 @@ export class ReactModel extends DOMWidgetModel {
       );
       const updateChildren = () => {
         console.log("update children");
-        (async () => {
+        this.enqueue(async () => {
           setChildrenComponents(await childrenToReactComponents(view));
-        })();
+        });
       };
       useEffect(() => {
         this.listenTo(this, "change:props", forceRerender);

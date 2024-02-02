@@ -61,6 +61,11 @@ class Widget(anywidget.AnyWidget):
             extra_traits = {}
             if isinstance(_esm, str):
                 extra_traits["_esm"] = Unicode(str(_esm)).tag(sync=True)
+            elif isinstance(_esm, Path):
+                from anywidget._util import try_file_contents
+
+                self._esm = try_file_contents(_esm)
+
             self.add_traits(**extra_traits)
         _import_map = kwargs.pop("_import_map", {})
         _import_map = {
@@ -107,6 +112,8 @@ class ValueWidget(Widget, ValueWidgetClassic):
 
 # this is deprecated
 class ReactWidget(ValueWidget):
+    _esm = HERE / Path("basic.tsx")
+
     def __init__(self, **kwargs) -> None:
         warnings.warn(
             "ReactWidget is deprecated, use Widget or ValueWidget instead", DeprecationWarning
