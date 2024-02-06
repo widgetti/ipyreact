@@ -20,8 +20,8 @@ class ReactMagics(Magics):
         type=str,
         default="_last_react_widget",
         help=(
-            "Name of the widget variable injected into the local namespace",
-            " (default = _last_react_widget).",
+            "Name of the widget variable injected into the local namespace"
+            " (default = _last_react_widget)."
         ),
     )
     @argument(
