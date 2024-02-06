@@ -142,9 +142,9 @@ pip install ipyreact
 - Make sure you export a default function from your module (e.g. `export default function MyComponent() { ... }`). This is the component that will be rendered.
 - Pass `events={"onClick": handler}` to the constructor or add a method with the name `event_onClick(self, data=None)` to add a `onClick` callback to your props.
 
-### Built in components
+### HTML elements
 
-You do not need to provide the module code to create a custom component, ipyreact supports the same API as [React's createElement](https://react.dev/reference/react/createElement)
+You do not need to provide the module code to create built-in HTML elements, ipyreact supports the same API as [React's createElement](https://react.dev/reference/react/createElement)
 allowing creation of buttons for instance.
 
 ```python
