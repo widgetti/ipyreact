@@ -69,9 +69,9 @@ def _update_import_map():
 # still for backwards compatibility
 define_import_map(
     {
-        "@mui/material": "https://esm.sh/@mui/material@5.11.10",
-        "@mui/material/": "https://esm.sh/@mui/material@5.11.10/",
-        "@mui/icons-material/": "https://esm.sh/@mui/icons-material/",
-        "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
+        "@mui/material": "https://esm.sh/@mui/material@5.11.10?external=react,react-dom",
+        "@mui/material/": "https://esm.sh/@mui/material@5.11.10&external=react,react-dom/",
+        "@mui/icons-material/": "https://esm.sh/@mui/icons-material/?external=react,react-dom",
+        "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0?external=react,react-dom",
     }
 )

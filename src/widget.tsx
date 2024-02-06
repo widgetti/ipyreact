@@ -97,39 +97,39 @@ async function ensureImportShimLoaded() {
   return await importShimLoaded;
 }
 
-function autoExternalReactResolve(
-  id: string,
-  parentUrl: string,
-  resolve: (arg0: any, arg1: any) => any,
-) {
-  const shipsWith =
-    id == "react" ||
-    id == "react-dom" ||
-    id == "react/jsx-runtime" ||
-    id == "react-dom/client" ||
-    id == "react-reconciler" ||
-    id == "react-reconciler/constants";
-  const alreadyPatched = parentUrl.includes("?external=react,react-dom");
-  const parentIsEsmSh = parentUrl.startsWith("https://esm.sh/");
-  const isBlob = id.startsWith("blob:");
-  if (!shipsWith && !id.includes("://") && !parentIsEsmSh) {
-    id = "https://esm.sh/" + id;
-  }
-  if (!shipsWith && !alreadyPatched && !isBlob) {
-    id = id + "?external=react,react-dom";
-  }
-  return resolve(id, parentUrl);
-}
+// function autoExternalReactResolve(
+//   id: string,
+//   parentUrl: string,
+//   resolve: (arg0: any, arg1: any) => any,
+// ) {
+//   const shipsWith =
+//     id == "react" ||
+//     id == "react-dom" ||
+//     id == "react/jsx-runtime" ||
+//     id == "react-dom/client" ||
+//     id == "react-reconciler" ||
+//     id == "react-reconciler/constants";
+//   const alreadyPatched = parentUrl.includes("?external=react,react-dom");
+//   const parentIsEsmSh = parentUrl.startsWith("https://esm.sh/");
+//   const isBlob = id.startsWith("blob:");
+//   if (!shipsWith && !id.includes("://") && !parentIsEsmSh) {
+//     id = "https://esm.sh/" + id;
+//   }
+//   if (!shipsWith && !alreadyPatched && !isBlob) {
+//     id = id + "?external=react,react-dom";
+//   }
+//   return resolve(id, parentUrl);
+// }
 
 // @ts-ignore
 window.esmsInitOptions = {
   shimMode: true,
   mapOverrides: true,
-  resolve: (
-    id: string,
-    parentUrl: string,
-    resolve: (id: string, parentUrl: string) => any,
-  ) => autoExternalReactResolve(id, parentUrl, resolve),
+  // resolve: (
+  //   id: string,
+  //   parentUrl: string,
+  //   resolve: (id: string, parentUrl: string) => any,
+  // ) => autoExternalReactResolve(id, parentUrl, resolve),
 };
 
 let react18ESMUrls: any = null;
