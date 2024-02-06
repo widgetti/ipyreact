@@ -7,7 +7,6 @@ import {
   DOMWidgetView,
   ISerializers,
   unpack_models,
-  WidgetView,
 } from "@jupyter-widgets/base";
 
 import * as React from "react";
@@ -27,7 +26,7 @@ import { MODULE_NAME, MODULE_VERSION } from "./version";
 // @ts-ignore
 // import 'es-module-shims';
 import { transform } from "sucrase";
-import { ErrorBoundary } from "./components";
+import { ErrorBoundary, JupyterWidget } from "./components";
 import { Root } from "react-dom/client";
 import { ModelDestroyOptions } from "backbone";
 
@@ -123,23 +122,93 @@ function ensureReactSetup(version: number) {
   }
 }
 
+class ComponentData {
+  component: any;
+  key: string;
+
+  constructor(component: any, key: string) {
+    this.component = component;
+    this.key = key;
+  }
+
+  asElement(view: DOMWidgetView) {
+    return React.createElement(this.component, { view, key: this.key });
+  }
+}
+
 const widgetToReactComponent = async (widget: WidgetModel) => {
-  const WidgetRenderHOC = (widget: WidgetModel) => {
-    return ({ view }: { view: WidgetView | null }) => {
-      return <div>widget placeholder</div>;
-    };
-  };
   if (widget instanceof ReactModel) {
-    return await widget.component;
-    // const el = <ChildComponent view={rootView}></ChildComponent>;
-    // return el;
-  } else if (typeof widget === "string") {
-    return () => widget;
+    return new ComponentData(await widget.component, widget.model_id);
   } else {
-    const ChildComponent = WidgetRenderHOC(widget);
-    return ChildComponent;
+    return new ComponentData(
+      ({ view }: { view: DOMWidgetView }) => JupyterWidget({ widget, view }),
+      widget.model_id,
+    );
   }
 };
+
+const entriesToObj = (acc: any, [key, value]: any[]) => {
+  acc[key] = value;
+  return acc;
+};
+
+async function replaceWidgetWithComponent(
+  data: any,
+  get_model: (model_id: string) => Promise<WidgetModel>,
+): Promise<any> {
+  const type = typeof data;
+  if (type === "string" && data.startsWith("IPY_MODEL_")) {
+    const modelId = data.substring("IPY_MODEL_".length);
+    const model = await get_model(modelId);
+    return widgetToReactComponent(model);
+  }
+  if (
+    ["string", "number", "boolean", "bigint"].includes(type) ||
+    data == null
+  ) {
+    return data;
+  }
+  if (data instanceof WidgetModel) {
+    return widgetToReactComponent(data);
+  }
+  if (Array.isArray(data)) {
+    return Promise.all(
+      data.map(async (d) => replaceWidgetWithComponent(d, get_model)),
+    );
+  }
+
+  return (
+    await Promise.all(
+      Object.entries(data).map(async ([key, value]) => [
+        key,
+        await replaceWidgetWithComponent(value, get_model),
+      ]),
+    )
+  ).reduce(entriesToObj, {});
+}
+
+function replaceComponentWithElement(data: any, view: DOMWidgetView): any {
+  const type = typeof data;
+  if (
+    ["string", "number", "boolean", "bigint"].includes(type) ||
+    data == null
+  ) {
+    return data;
+  }
+  if (data instanceof ComponentData) {
+    return data.asElement(view);
+  }
+  if (Array.isArray(data)) {
+    return data.map((d) => replaceComponentWithElement(d, view));
+  }
+  const entriesToObj = (acc: any, [key, value]: any[]) => {
+    acc[key] = value;
+    return acc;
+  };
+  return Object.entries(data)
+    .map(([key, value]) => [key, replaceComponentWithElement(value, view)])
+    .reduce(entriesToObj, {});
+}
 
 export class ReactModel extends DOMWidgetModel {
   defaults() {
@@ -342,16 +411,12 @@ export class ReactModel extends DOMWidgetModel {
   async createWrapperComponent() {
     // we wrap the component in a wrapper that puts in all the props from the
     // widget model, and handles events, etc
-    const childrenToReactComponents = async (view: any) => {
-      let childrenWidgets: Array<WidgetModel> = this.get("children");
-      return await Promise.all(
-        childrenWidgets.map(
-          async (child: any) => await widgetToReactComponent(child),
-        ),
-      );
-    };
 
-    let initialChildrenComponents = await childrenToReactComponents(null);
+    const get_model = this.widget_manager.get_model.bind(this.widget_manager);
+    let initialChildrenComponents = await replaceWidgetWithComponent(
+      { children: this.get("children") },
+      get_model,
+    );
     // const resolveFormatters = async () => {
     //   let formatterDict = this.get("formatters") || {};
     //   let formatterModules : any = {};
@@ -365,7 +430,10 @@ export class ReactModel extends DOMWidgetModel {
 
     // let formatterModules = await resolveFormatters();
     // console.log("formatterModules", formatterModules);
-
+    const initialModelProps = await replaceWidgetWithComponent(
+      this.get("props"),
+      get_model,
+    );
     try {
       this.currentComponentToWrapOrError = await this.createComponentToWrap();
     } catch (e) {
@@ -402,27 +470,30 @@ export class ReactModel extends DOMWidgetModel {
           this.stopListening(this, "component");
         };
       }, []);
-      const setForceRerenderCounter = useState(0)[1];
-      const forceRerender = () => {
-        console.log(
-          "force rerender",
-          name,
-          this.get("props"),
-          this.previous("props"),
-        );
-        setForceRerenderCounter((x) => x + 1);
-      };
       const [childrenComponents, setChildrenComponents] = useState(
         initialChildrenComponents,
       );
       const updateChildren = () => {
         console.log("update children");
         this.enqueue(async () => {
-          setChildrenComponents(await childrenToReactComponents(view));
+          setChildrenComponents(
+            await replaceWidgetWithComponent(
+              { children: this.get("children") },
+              get_model,
+            ),
+          );
+        });
+      };
+      const [modelProps, setModelProps] = useState(initialModelProps);
+      const updateModelProps = () => {
+        this.enqueue(async () => {
+          setModelProps(
+            await replaceWidgetWithComponent(this.get("props"), get_model),
+          );
         });
       };
       useEffect(() => {
-        this.listenTo(this, "change:props", forceRerender);
+        this.listenTo(this, "change:props", updateModelProps);
         this.listenTo(this, "change:children", updateChildren);
         for (const key of Object.keys(this.attributes)) {
           if (isSpecialProp(key)) {
@@ -431,7 +502,7 @@ export class ReactModel extends DOMWidgetModel {
           this.listenTo(this, `change:${key}`, updateChildren);
         }
         return () => {
-          this.stopListening(this, "change:props", forceRerender);
+          this.stopListening(this, "change:props", updateModelProps);
           this.stopListening(this, "change:children", updateChildren);
           for (const key of Object.keys(this.attributes)) {
             if (isSpecialProp(key)) {
@@ -464,17 +535,16 @@ export class ReactModel extends DOMWidgetModel {
       }
       // React.createElement('div', {"aria-activedescendant": "foo"}})
       // <div aria-activedescendant="foo"></div>
-      const modelProps = { ...this.get("props") };
       // for (const key of Object.keys(modelProps)) {
       //   if(formatterModules[key]) {
       //     modelProps[key] = formatterModules[key].py2js(modelProps[key]);
       //   }
       // }
       // console.log("children", children);
-      let children = childrenComponents.map((ChildComponent: any) => {
-        return <ChildComponent view={view}></ChildComponent>;
-      });
-      const childrenProps = children.length > 0 ? { children: children } : {};
+      const childrenProps = replaceComponentWithElement(
+        childrenComponents,
+        view,
+      );
       // useEffect(() => {
       //   // force render every 2 seconds
       //   const interval = setInterval(() => {
@@ -501,13 +571,13 @@ export class ReactModel extends DOMWidgetModel {
       }
 
       const props = {
-        ...modelProps,
+        ...replaceComponentWithElement(modelProps, view),
         ...backboneProps,
         ...parentProps,
         ...events,
         ...childrenProps,
       };
-      console.log("props", props, children, component);
+
       if (component instanceof Error) {
         throw component;
       }
