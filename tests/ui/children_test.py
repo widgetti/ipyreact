@@ -1,6 +1,5 @@
 import ipywidgets
 import playwright.sync_api
-import pytest
 from solara import display
 
 import ipyreact
@@ -45,7 +44,6 @@ def test_children_react(solara_test, page_session: playwright.sync_api.Page):
     page_session.locator(".test-button > .test-span").wait_for()
 
 
-@pytest.mark.xfail
 def test_children_ipywidgets(solara_test, page_session: playwright.sync_api.Page):
     def on_click(event_data):
         html = ipywidgets.HTML(value="not a direct child")

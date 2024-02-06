@@ -31,7 +31,7 @@ class Widget(anywidget.AnyWidget):
     _view_name = Unicode("ReactView").tag(sync=True)
     _view_module = Unicode(module_name).tag(sync=True)
     _view_module_version = Unicode(module_version).tag(sync=True)
-    props = Dict({}, allow_none=True).tag(sync=True)
+    props = Dict({}, allow_none=True).tag(sync=True, **widget_serialization)
     children = List(t.cast(t.List[t.Union[Widget, str]], [])).tag(sync=True, **widget_serialization)
 
     # this stays on the python side
