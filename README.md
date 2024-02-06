@@ -347,7 +347,7 @@ import traitlets
 
 class Slider(ipyreact.ValueWidget):
     _esm = """
-
+    import * as React from "react";
     import {Slider} from "antd-minimal"
 
     export default ({value, setValue, ...rest}) => {
