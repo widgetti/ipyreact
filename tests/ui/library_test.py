@@ -7,8 +7,8 @@ code = """
 import Button from '@mui/material/Button';
 import * as React from "react";
 
-export default function({value, set_value, debug}) {
-    return <Button variant="contained" onClick={() => set_value(value + 1)}>
+export default function({value, setValue, debug}) {
+    return <Button variant="contained" onClick={() => setValue(value + 1)}>
         {value || 0} times
     </Button>
 };
