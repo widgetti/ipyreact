@@ -15,7 +15,7 @@ from pathlib import Path
 import anywidget
 from ipywidgets import ValueWidget as ValueWidgetClassic
 from ipywidgets import Widget, widget_serialization
-from traitlets import Any, Bool, Dict, Int, List, Unicode, observe
+from traitlets import Any, Bool, Dict, Int, List, Unicode, default, observe
 
 from ._frontend import module_name, module_version
 
@@ -40,20 +40,13 @@ class Widget(anywidget.AnyWidget):
     _event_names = List(Unicode(), allow_none=True).tag(sync=True)
     _debug = Bool(False).tag(sync=True)
     _type = Unicode(None, allow_none=True).tag(sync=True)
+    _dependencies = List(Unicode(), allow_none=True).tag(sync=True)
     _module = Unicode(None, allow_none=True).tag(sync=True)
     _react_version = Int(18).tag(sync=True)
     _cdn = Unicode("https://esm.sh/").tag
-    _import_map = Dict({}).tag(sync=True)
-    _import_map_default = {
-        "imports": {
-            "@mui/material/": "https://esm.sh/@mui/material@5.11.10/",
-            "@mui/icons-material/": "https://esm.sh/@mui/icons-material/",
-            "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
-        },
-        "scopes": {},
-    }
+
+    # anywidget doesn't like if _esm isn't there
     _esm = ""
-    # _esm = HERE / Path("basic.tsx")
 
     def __init__(self, **kwargs) -> None:
         _esm = kwargs.pop("_esm", None)
@@ -67,12 +60,6 @@ class Widget(anywidget.AnyWidget):
                 self._esm = try_file_contents(_esm)
 
             self.add_traits(**extra_traits)
-        _import_map = kwargs.pop("_import_map", {})
-        _import_map = {
-            "imports": {**self._import_map_default["imports"], **_import_map.get("imports", {})},
-            "scopes": {**self._import_map_default["scopes"], **_import_map.get("scopes", {})},
-        }
-        kwargs["_import_map"] = _import_map
         _ignore = ["on_msg", "on_displayed", "on_trait_change", "on_widget_constructed"]
         events = kwargs.pop("events", {})
         for method_name in dir(self):
@@ -103,6 +90,12 @@ class Widget(anywidget.AnyWidget):
     @observe("events")
     def _events(self, change):
         self.event_names = list(change["new"].keys())
+
+    @default("_dependencies")
+    def _default_dependencies(self):
+        import ipyreact.module
+
+        return ipyreact.module.get_module_names()
 
 
 class ValueWidget(Widget, ValueWidgetClassic):

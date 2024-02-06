@@ -217,20 +217,18 @@ However, the above code now has a direct link to "https://esm.sh/canvas-confetti
 
 To address this, we also support [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) to
 write code more independant of where the modules come from.
-For every widget, you can provide an `_import_map`, which is a dictionary of module names to urls or other modules. By default we support `react` and `react-dom` which is prebundled.
+You can provide an import map using `ipyreact.define_import_map`, which takes a dictionary of module names to urls or other modules. By default we support `react` and `react-dom` which is prebundled.
 
 Apart from `react`, the default we provide is:
 
 ```python
-_import_map = {
-    "imports": {
-        "@mui/material/": "https://esm.sh/@mui/material@5.11.10/",
-        "@mui/icons-material/": "https://esm.sh/@mui/icons-material/",
-        "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
-    },
-    "scopes": {
-    },
-}
+define_import_map({
+    "@mui/material": "https://esm.sh/@mui/material@5.11.10",
+    "@mui/material/": "https://esm.sh/@mui/material@5.11.10/",
+    "@mui/icons-material/": "https://esm.sh/@mui/icons-material/",
+    "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
+})
+
 ```
 
 Which means we can now write our ConfettiButton as:
@@ -238,9 +236,15 @@ Which means we can now write our ConfettiButton as:
 ```python
 import ipyreact
 
+# note that this import_map is already part of the default
+ipyreact.define_import_map({
+    "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
+})
+
+
 ipyreact.ValueWidget(
     _esm="""
-    import confetti from "confetti";
+    import confetti from "canvas-confetti";
     import * as React from "react";
 
     export default function({value, setValue}) {
@@ -248,14 +252,7 @@ ipyreact.ValueWidget(
             {value || 0} times confetti
         </button>
     };
-    """,
-    # note that this import_map is already part of the default
-    _import_map={
-        "imports": {
-            "confetti": "https://esm.sh/canvas-confetti@1.6.0",
-        },
-
-    }
+    """
 )
 ```
 
@@ -282,6 +279,103 @@ export default function({ value, setValue}) {
 
 We use the https://github.com/guybedford/es-module-shims shim to the browser page for the import maps functionality.
 This also means that although import maps can be configured per widget, they configuration of import maps is global.
+
+### Bundled ESM modules
+
+## Creating the ES module
+
+While esm.sh is convenient to use, for production use, we recommend creating a standalone bundle. This will load faster and will not require a direct connection to esm.sh, which might not be available in airgapped or firewalled environments.
+
+We will not create a minimal bundle for https://ant.design/
+
+First create a simple file called `antd-minimal.js` that exports what we need.
+
+```javascript
+export { Button, Flex, Slider } from "antd";
+```
+
+Next, we install the libraries:
+
+```bash
+$ npm install antd
+```
+
+And use ESBuild to turn this into a self-contained module/bundle, without react, since ipyreact provides that for us.
+
+```
+$ npx esbuild ./antd-minimal.js --bundle --outfile=./antd-minimal.esm.js --format=esm --external:react --external:react-dom --target=esnext
+```
+
+Now we can define the module with a custom name (we call it antd-minimal).
+
+```python
+import ipyreact
+from pathlib import Path
+
+ipyreact.define_module("antd-minimal", Path("./antd-minimal.esm.js"))
+```
+
+We can now use the components from this module:
+
+```python
+def on_click(event_data):
+    w.children = ["Clicked"]
+
+w = ipyreact.Widget(_module="antd-minimal", _type="Button", children=["Hi there"], events={"onClick": on_click})
+w
+```
+
+Or, composing multiple ones:
+
+```python
+stack = ipyreact.Widget(_module="antd-minimal", _type="Flex",
+    props={"vertical": True, "style": {"padding": "24px"}},
+    children=[
+        ipyreact.Widget(_module="antd-minimal", _type="Button", children=["Ant Design Button"]),
+        ipyreact.Widget(_module="antd-minimal", _type="Slider",
+                       props={"defaultValue": 3, "min": 0, "max": 11}),
+])
+stack
+```
+
+Input components might need a little bit of custom code, and subclassing `ValueWidget`. It often means binding the value to the right prop of the input component (in this case the Slider takes the same name, `value`) and coupling the event handler (in this case `onChange`) to the `setValue` function.
+
+```python
+import traitlets
+
+
+class Slider(ipyreact.ValueWidget):
+    _esm = """
+
+    import {Slider} from "antd-minimal"
+
+    export default ({value, setValue, ...rest}) => {
+        return <Slider value={value} onChange={(v) => setValue(v)} {...rest}/>
+    }
+
+    """
+s = Slider(value=2)
+s
+```
+
+_Note that it depends on the implementation of the event handler if the value is being passed directly, or a (synthetic) event with the data will be passed as argument. An typical example event handler could be `onChange={(event) => setValue(event.target.value)}`._
+
+Now the slider widget is stateful, and we have bi-directional communication using the `.value` trait.
+For instance, we can read it:
+
+```python
+s.value
+```
+
+Or write to it, and it will be reflected directly in the UI.
+
+```python
+s.value = 10
+```
+
+Test this out in the notebook:
+[![JupyterLight](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://widgetti.github.io/ipyreact/lab/?path=antd/antd.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/widgetti/ipyreact/HEAD?labpath=examples%2Fantd%2Fantd.ipynb)
 
 ## Development Installation
 
