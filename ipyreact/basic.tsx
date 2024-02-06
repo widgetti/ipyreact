@@ -1,4 +1,4 @@
-import Button from "@mui/material/Button";
+import { Button } from "@mui/material";
 import confetti from "canvas-confetti";
 
 import * as React from "react";

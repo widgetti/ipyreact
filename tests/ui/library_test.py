@@ -1,10 +1,8 @@
 import playwright.sync_api
 from IPython.display import display
 
-import ipyreact
-
 code = """
-import Button from '@mui/material/Button';
+import {Button} from '@mui/material';
 import * as React from "react";
 
 export default function({value, setValue, debug}) {
@@ -16,6 +14,12 @@ export default function({value, setValue, debug}) {
 
 
 def test_material_ui(solara_test, assert_solara_snapshot, page_session: playwright.sync_api.Page):
+    # this can be removed if solara adds support to ipyreact/ipyesm
+    import ipyreact.importmap
+
+    ipyreact.importmap._import_map_widget = None
+    ipyreact.importmap._update_import_map()
+
     class Button(ipyreact.ReactWidget):
         _esm = code
 
