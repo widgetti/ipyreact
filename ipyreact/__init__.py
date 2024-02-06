@@ -5,6 +5,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from ._version import __version__
+from .importmap import define_import_map
+from .module import define_module
 from .widget import ReactWidget, ValueWidget, Widget
 
 

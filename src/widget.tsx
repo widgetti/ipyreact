@@ -41,10 +41,44 @@ declare namespace importShim {
   const getImportMap: () => any;
 }
 
-// interface Window {
-//   esmsInitOptions?: any;
-//   importShim: typeof importShim;
-// }
+const moduleResolveFunctions: any = {};
+const modules: any = {};
+
+function provideModule(moduleName: string, module: any) {
+  if (moduleResolveFunctions[moduleName]) {
+    moduleResolveFunctions[moduleName](module);
+  } else {
+    modules[moduleName] = Promise.resolve(module);
+  }
+}
+
+function requestModule(moduleName: string) {
+  if (!modules[moduleName]) {
+    modules[moduleName] = new Promise(
+      (resolve) => (moduleResolveFunctions[moduleName] = resolve),
+    );
+  }
+  return modules[moduleName];
+}
+
+let importMapConfigurationResolver: any = null;
+let importMapConfigurationPromise: any = null;
+
+function provideImportMapConfiguration() {
+  if (importMapConfigurationResolver) {
+    importMapConfigurationResolver();
+  } else {
+    importMapConfigurationPromise = Promise.resolve();
+  }
+}
+
+function requestImportMapConfiguration() {
+  if (!importMapConfigurationPromise) {
+    importMapConfigurationPromise = new Promise((resolve) => {
+      importMapConfigurationResolver = resolve;
+    });
+  }
+}
 
 // @ts-ignore
 // const react16Code = require('!!raw-loader!./react16.js');
@@ -210,6 +244,190 @@ function replaceComponentWithElement(data: any, view: DOMWidgetView): any {
     .reduce(entriesToObj, {});
 }
 
+export class Module extends WidgetModel {
+  defaults() {
+    return {
+      ...super.defaults(),
+      _model_name: Module.model_name,
+      _model_module: Module.model_module,
+      _model_module_version: Module.model_module_version,
+      _view_name: Module.view_name,
+      _view_module: Module.view_module,
+      _view_module_version: Module.view_module_version,
+    };
+  }
+  initialize(attributes: any, options: any): void {
+    super.initialize(attributes, options);
+    this.addModule();
+  }
+  destroy(options?: any): any {
+    if (this.codeUrl) {
+      URL.revokeObjectURL(this.codeUrl);
+    }
+    return super.destroy(options);
+  }
+  async updateImportMap() {
+    await ensureImportShimLoaded();
+    await requestImportMapConfiguration();
+    const reactImportMap = ensureReactSetup(this.get("react_version"));
+    const importMap = {
+      imports: {
+        ...reactImportMap,
+      },
+    };
+    importShim.addImportMap(importMap);
+  }
+  async addModule() {
+    const code = this.get("code");
+    try {
+      let name = this.get("name");
+      if (this.codeUrl) {
+        URL.revokeObjectURL(this.codeUrl);
+      }
+      this.codeUrl = URL.createObjectURL(
+        new Blob([code], { type: "text/javascript" }),
+      );
+      let dependencies = this.get("dependencies") || [];
+      this.set(
+        "status",
+        "Waiting for dependencies: " + dependencies.join(", "),
+      );
+      await Promise.all(dependencies.map((x: any) => requestModule(x)));
+      await ensureImportShimLoaded();
+      await this.updateImportMap();
+      this.set("status", "Loading module...");
+      let module = await importShim(this.codeUrl);
+      importShim.addImportMap({ imports: { [name]: this.codeUrl } });
+      this.set("status", "Loaded module!");
+      provideModule(name, module);
+    } catch (e) {
+      console.error(e);
+      this.set("status", "Error loading module: " + e);
+    }
+  }
+
+  static model_name = "Module";
+  static model_module = MODULE_NAME;
+  static model_module_version = MODULE_VERSION;
+  static view_name = "ModuleView"; // Set to null if no view
+  static view_module = MODULE_NAME; // Set to null if no view
+  static view_module_version = MODULE_VERSION;
+  private codeUrl: string | null;
+}
+
+export class ModuleView extends DOMWidgetView {
+  private root: Root | null = null;
+
+  async render() {
+    this.el.classList.add("jupyter-react-widget");
+    this.root = ReactDOMClient.createRoot(this.el);
+    const Component = () => {
+      const [status, setStatus] = useState(this.model.get("status"));
+      useEffect(() => {
+        this.listenTo(this.model, "change:status", () => {
+          setStatus(this.model.get("status"));
+        });
+        return () => {
+          this.stopListening(this.model, "change:status");
+        };
+      }, []);
+      const name = this.model.get("name");
+      return (
+        <div>
+          {name} status: {status}
+        </div>
+      );
+    };
+    this.root.render(<Component></Component>);
+  }
+
+  remove() {
+    this.root?.unmount();
+  }
+}
+
+export class ImportMap extends WidgetModel {
+  defaults() {
+    return {
+      ...super.defaults(),
+      _model_name: ImportMap.model_name,
+      _model_module: ImportMap.model_module,
+      _model_module_version: ImportMap.model_module_version,
+      _view_name: ImportMap.view_name,
+      _view_module: ImportMap.view_module,
+      _view_module_version: ImportMap.view_module_version,
+      import_map: {
+        imports: {},
+        scopes: {},
+      },
+    };
+  }
+  initialize(attributes: any, options: any): void {
+    super.initialize(attributes, options);
+    this.updateImportMap();
+    this.on("change:import_map", () => {
+      this.updateImportMap();
+    });
+  }
+  destroy(options?: any): any {
+    this.off("change:import_map");
+    return super.destroy(options);
+  }
+  async updateImportMap() {
+    await ensureImportShimLoaded();
+    const importMapWidget = this.get("import_map");
+    const importMap = {
+      imports: {
+        ...importMapWidget.imports,
+      },
+      scopes: {
+        ...importMapWidget.scopes,
+      },
+    };
+    importShim.addImportMap(importMap);
+    provideImportMapConfiguration();
+  }
+
+  static model_name = "ImportMap";
+  static model_module = MODULE_NAME;
+  static model_module_version = MODULE_VERSION;
+  static view_name = "ImportMap"; // Set to null if no view
+  static view_module = MODULE_NAME; // Set to null if no view
+  static view_module_version = MODULE_VERSION;
+}
+
+export class ImportMapView extends DOMWidgetView {
+  private root: Root | null = null;
+
+  async render() {
+    this.el.classList.add("jupyter-react-widget");
+    this.root = ReactDOMClient.createRoot(this.el);
+    const Component = () => {
+      const [importMap, setImportMap] = useState(this.model.get("import_map"));
+      useEffect(() => {
+        this.listenTo(this.model, "change:import_map", () => {
+          setImportMap(this.model.get("import_map"));
+        });
+        return () => {
+          this.stopListening(this.model, "change:import_map");
+        };
+      }, []);
+      const importMapJson = JSON.stringify(importMap, null, 2);
+      return (
+        <pre>
+          importmap:
+          {importMapJson}
+        </pre>
+      );
+    };
+    this.root.render(<Component></Component>);
+  }
+
+  remove() {
+    this.root?.unmount();
+  }
+}
+
 export class ReactModel extends DOMWidgetModel {
   defaults() {
     return {
@@ -237,12 +455,6 @@ export class ReactModel extends DOMWidgetModel {
       this.rejectComponent = reject;
     });
     this.queue = Promise.resolve();
-    this.on("change:_import_map", async () => {
-      this.enqueue(async () => {
-        // chain these updates, so they are executed in order
-        await this.updateComponentToWrap();
-      });
-    });
     this.on("change:_esm", async () => {
       this.enqueue(async () => {
         this.compileCode();
@@ -281,15 +493,11 @@ export class ReactModel extends DOMWidgetModel {
   }
   async updateImportMap() {
     await ensureImportShimLoaded();
+    await requestImportMapConfiguration();
     const reactImportMap = ensureReactSetup(this.get("_react_version"));
-    const importMapWidget = this.get("_import_map");
     const importMap = {
       imports: {
         ...reactImportMap,
-        ...importMapWidget["imports"],
-      },
-      scopes: {
-        ...importMapWidget["scopes"],
       },
     };
     importShim.addImportMap(importMap);
@@ -343,6 +551,8 @@ export class ReactModel extends DOMWidgetModel {
   async createComponentToWrap() {
     let moduleName = this.get("_module");
     let type = this.get("_type");
+    let _dependencies = this.get("_dependencies") || [];
+    await Promise.all(_dependencies.map((x: any) => requestModule(x)));
     if (this.compileError) {
       return () => <pre>{this.compileError.message}</pre>;
     } else {
