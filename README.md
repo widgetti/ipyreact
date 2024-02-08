@@ -226,11 +226,11 @@ define_import_map({
     "@mui/material": "https://esm.sh/@mui/material@5.11.10?external=react,react-dom",
     "@mui/material/": "https://esm.sh/@mui/material@5.11.10&external=react,react-dom/",
     "@mui/icons-material/": "https://esm.sh/@mui/icons-material/?external=react,react-dom",
-    "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0?external=react,react-dom",
+    "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
 })
 ```
 
-_Note that it is important to add `external=react,react-dom`, otherwise [esm.sh](https://esm.sh/#using-import-maps) would import ReactJS again_.
+_Note that it is important to add `external=react,react-dom` for ReactJS based libraries, otherwise [esm.sh](https://esm.sh/#using-import-maps) would import ReactJS again_.
 
 Which means we can now write our ConfettiButton as:
 
