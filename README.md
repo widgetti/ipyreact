@@ -378,6 +378,13 @@ Test this out in the notebook:
 [![JupyterLight](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://widgetti.github.io/ipyreact/lab/?path=antd/antd.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/widgetti/ipyreact/HEAD?labpath=examples%2Fantd%2Fantd.ipynb)
 
+### Bundled ES modules for threejs
+
+See this notebook for a 3D WebGL threejs-fiber example
+
+[![JupyterLight](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://widgetti.github.io/ipyreact/lab/?path=threejs-fiber/threejs-fiber.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/widgetti/ipyreact/HEAD?labpath=examples%2Fthreejs-fiber%2Fthreejs-fiber.ipynb)
+
 ## Development Installation
 
 Create a dev environment:
