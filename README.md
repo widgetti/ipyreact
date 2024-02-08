@@ -433,3 +433,26 @@ After a change wait for the build to finish and then refresh your browser and th
 #### Python:
 
 If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.
+
+# FAQ
+
+## Which version of React do you use.
+
+We currently only support React 18. Although we have some scaffolding in place to support different version, we do not have funding to support both.
+
+## Why does ipyreact provides React?
+
+If several ReactJS components need to be composed into a single React app, they need to share the same React context. This makes it possible
+for features such as React's [useContext](https://react.dev/reference/react/useContext) to work across the whole React tree.
+If every library brings its own React, they cannot communicate using this. Also, every child would need to be nested in its own `<div>`
+which can affect the layout of your application. When ipyreact provides React, we can build a true ReactJS application with a normal/true
+React render tree.
+
+## I get a React error
+
+For instance, if you see `"Cannot read properties of null (reading 'useReducer')"` it means that you are loading in your own ReactJS version.
+
+If you use https://esh.sh, make sure you add `??external=react,react-dom` at the end of the url, so that your esm bundle doesn't include its own
+ReactJS version, but uses the one provided with ipyreact.
+
+If you make your own bundle using esbuild, make sure to add the `--external:react --external:react-dom` flags on the CLI.
