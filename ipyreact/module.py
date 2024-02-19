@@ -43,4 +43,4 @@ def define_module(name, module: Union[str, Path]):
         The module code to register
     """
     _standard_dependencies.append(name)
-    return Module(code=module if not isinstance(module, Path) else module.read_text(), name=name)
+    return Module(code=module if not isinstance(module, Path) else module.read_text(encoding="utf8"), name=name)
