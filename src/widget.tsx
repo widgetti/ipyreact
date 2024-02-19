@@ -755,6 +755,9 @@ export class ReactModel extends DOMWidgetModel {
         childrenComponents,
         view,
       );
+      if (childrenProps.children && childrenProps.children.length === 1) {
+        childrenProps.children = childrenProps.children[0];
+      }
       // useEffect(() => {
       //   // force render every 2 seconds
       //   const interval = setInterval(() => {
