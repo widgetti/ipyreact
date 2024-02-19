@@ -36,11 +36,16 @@ def test_module(ipywidgets_runner, page_session: playwright.sync_api.Page, asser
 
 def test_threejs_fiber(ipywidgets_runner, page_session: playwright.sync_api.Page, assert_solara_snapshot):
     bundle_path = HERE.parent.parent / "examples/threejs-fiber/threejs-fiber.bundle.js"
+    bundle_path_copy = bundle_path
 
-    def kernel_code(bundle_path):
+    def kernel_code(bundle_path=None):
         from pathlib import Path
 
         import ipyreact
+
+        if bundle_path is None:
+            # this only happens in solara
+            bundle_path = str(bundle_path_copy)  # type: ignore
 
         ipyreact.define_module("threejs-fiber", Path(bundle_path))
         # import ipyreact.importmap
