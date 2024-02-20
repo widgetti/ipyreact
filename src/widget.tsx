@@ -41,22 +41,30 @@ declare namespace importShim {
   const getImportMap: () => any;
 }
 
-const moduleResolveFunctions: any = {};
+const moduleFunctions: any = {};
 const modules: any = {};
 
 function provideModule(moduleName: string, module: any) {
-  if (moduleResolveFunctions[moduleName]) {
-    moduleResolveFunctions[moduleName](module);
+  if (module instanceof Error) {
+    if (moduleFunctions[moduleName]) {
+      moduleFunctions[moduleName].reject(module);
+    } else {
+      modules[moduleName] = Promise.reject(module);
+    }
   } else {
-    modules[moduleName] = Promise.resolve(module);
+    if (moduleFunctions[moduleName]) {
+      moduleFunctions[moduleName].resolve(module);
+    } else {
+      modules[moduleName] = Promise.resolve(module);
+    }
   }
 }
 
 function requestModule(moduleName: string) {
   if (!modules[moduleName]) {
-    modules[moduleName] = new Promise(
-      (resolve) => (moduleResolveFunctions[moduleName] = resolve),
-    );
+    modules[moduleName] = new Promise((resolve, reject) => {
+      moduleFunctions[moduleName] = { resolve, reject };
+    });
   }
   return modules[moduleName];
 }
@@ -279,8 +287,8 @@ export class Module extends WidgetModel {
   }
   async addModule() {
     const code = this.get("code");
+    let name = this.get("name");
     try {
-      let name = this.get("name");
       if (this.codeUrl) {
         URL.revokeObjectURL(this.codeUrl);
       }
@@ -302,6 +310,7 @@ export class Module extends WidgetModel {
       provideModule(name, module);
     } catch (e) {
       console.error(e);
+      provideModule(name, e);
       this.set("status", "Error loading module: " + e);
     }
   }
