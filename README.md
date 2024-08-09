@@ -390,7 +390,7 @@ See this notebook for a 3D WebGL threejs-fiber example
 Create a dev environment:
 
 ```bash
-conda create -n ipyreact-dev -c conda-forge nodejs yarn python jupyterlab
+conda create -n ipyreact-dev -c conda-forge nodejs yarn python 'jupyterlab<4'
 conda activate ipyreact-dev
 ```
 
