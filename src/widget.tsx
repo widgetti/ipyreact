@@ -189,6 +189,9 @@ const widgetToReactComponent = async (widget: WidgetModel) => {
   }
 };
 
+const isPlainObject = (value: any) =>
+  value && [undefined, Object].includes(value.constructor);
+
 const entriesToObj = (acc: any, [key, value]: any[]) => {
   acc[key] = value;
   return acc;
@@ -218,15 +221,17 @@ async function replaceWidgetWithComponent(
       data.map(async (d) => replaceWidgetWithComponent(d, get_model)),
     );
   }
-
-  return (
-    await Promise.all(
-      Object.entries(data).map(async ([key, value]) => [
-        key,
-        await replaceWidgetWithComponent(value, get_model),
-      ]),
-    )
-  ).reduce(entriesToObj, {});
+  if (isPlainObject(data)) {
+    return (
+      await Promise.all(
+        Object.entries(data).map(async ([key, value]) => [
+          key,
+          await replaceWidgetWithComponent(value, get_model),
+        ]),
+      )
+    ).reduce(entriesToObj, {});
+  }
+  return data;
 }
 
 function replaceComponentWithElement(data: any, view: DOMWidgetView): any {
@@ -243,13 +248,16 @@ function replaceComponentWithElement(data: any, view: DOMWidgetView): any {
   if (Array.isArray(data)) {
     return data.map((d) => replaceComponentWithElement(d, view));
   }
-  const entriesToObj = (acc: any, [key, value]: any[]) => {
-    acc[key] = value;
-    return acc;
-  };
-  return Object.entries(data)
-    .map(([key, value]) => [key, replaceComponentWithElement(value, view)])
-    .reduce(entriesToObj, {});
+  if (isPlainObject(data)) {
+    const entriesToObj = (acc: any, [key, value]: any[]) => {
+      acc[key] = value;
+      return acc;
+    };
+    return Object.entries(data)
+      .map(([key, value]) => [key, replaceComponentWithElement(value, view)])
+      .reduce(entriesToObj, {});
+  }
+  return data;
 }
 
 export class Module extends WidgetModel {
