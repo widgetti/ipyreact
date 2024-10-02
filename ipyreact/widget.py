@@ -108,7 +108,5 @@ class ReactWidget(ValueWidget):
     _esm = HERE / Path("basic.tsx")
 
     def __init__(self, **kwargs) -> None:
-        warnings.warn(
-            "ReactWidget is deprecated, use Widget or ValueWidget instead", DeprecationWarning
-        )
+        warnings.warn("ReactWidget is deprecated, use Widget or ValueWidget instead", DeprecationWarning)
         super().__init__(**kwargs)

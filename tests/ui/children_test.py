@@ -24,11 +24,7 @@ def test_children_text(solara_test, page_session: playwright.sync_api.Page):
 
 def test_children_react(solara_test, page_session: playwright.sync_api.Page):
     def on_click(event_data):
-        b.children = [
-            ipyreact.Widget(
-                _type="span", props={"className": "test-span"}, children=["direct child"]
-            )
-        ]
+        b.children = [ipyreact.Widget(_type="span", props={"className": "test-span"}, children=["direct child"])]
 
     b = ipyreact.Widget(
         _type="button",
