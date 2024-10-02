@@ -421,6 +421,11 @@ the `install` command every time that you rebuild your extension. For certain in
 you might also need another flag instead of `--sys-prefix`, but we won't cover the meaning
 of those flags here.
 
+## Binary data transport
+
+Binary data such as NumPy arrays, or Arrow data can be efficiently transported to the frontend.
+Props support object that support the buffer interface. See [this test as an example](https://github.com/widgetti/ipyreact/tree/master/tests/ui/serialize_test.py).
+
 ### How to see your changes
 
 #### Typescript:
