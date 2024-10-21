@@ -47,7 +47,7 @@ jobs:
       - name: Upload builds
         uses: actions/upload-artifact@v3
         with:
-          name: ipyreact-dist-${{ github.run_number }}
+          name: ipyreact-dist
           path: |
             ./dist
             ./*.tgz
@@ -65,7 +65,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: ipyreact-dist-${{ github.run_number }}
+          name: ipyreact-dist
 
       - name: Install Python
         uses: actions/setup-python@v2
@@ -86,7 +86,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: ipyreact-dist-${{ github.run_number }}
+          name: ipyreact-dist
 
       - name: Install Python
         uses: actions/setup-python@v2
@@ -116,7 +116,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: ipyreact-dist-${{ github.run_number }}
+          name: ipyreact-dist
 
       - name: Install node
         uses: actions/setup-node@v1
