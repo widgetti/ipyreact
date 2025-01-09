@@ -593,29 +593,21 @@ export class ReactModel extends DOMWidgetModel {
         );
         module = await importShim(this.codeUrl);
         if (!module) {
-          return () => <div>error loading module</div>;
+          throw new Error(`Error loading module`);
         }
       } else {
         module = await importShim(moduleName);
         if (!module) {
-          return () => <div>no module found with name {moduleName}</div>;
+          throw new Error(`no module found with name ${moduleName}`);
         }
       }
       let component = module[type || "default"];
       if (!component) {
         if (type) {
-          return () => (
-            <div>
-              no component found in module {moduleName} (with name {type})
-            </div>
-          );
+          throw new Error(`no component ${type} found in module ${moduleName}`);
         } else {
-          return () => (
-            <div>
-              no component found in module {moduleName} (it should be exported
-              as default)
-            </div>
-          );
+          throw new Error(`
+            no component found in module ${moduleName} (it should be exported as default)`);
         }
       } else {
         if (this.compiledCode) {

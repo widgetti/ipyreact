@@ -82,3 +82,34 @@ def test_update_props_after_create(solara_test, page_session: playwright.sync_ap
 
     display(b)
     page_session.locator(".test-button-updated >> text=Button").wait_for()
+
+
+def test_error_module(solara_test, page_session: playwright.sync_api.Page):
+    b = ipyreact.Widget(
+        _type="Foo",
+        _module="bar",
+        children=["should not be shown"],
+    )
+    display(b)
+    page_session.locator("text=Unable to resolve specifier").wait_for()
+
+
+def test_error_type(solara_test, page_session: playwright.sync_api.Page):
+    ipyreact.define_module(
+        "my-module",
+        """
+    import * as React from "react";
+
+    export function ClickButton({value, setValue}) {
+        return React.createElement("button", {
+            className: "counter-widget",
+            onClick: () => setValue(value + 1),
+            children: [`${value|| 0} clicks`],
+        })
+    };
+    """,
+    )
+
+    b = ipyreact.ValueWidget(_module="my-module", _type="ClickButtonMistyped")
+    display(b)
+    page_session.locator("text=no component ClickButtonMistyped found in module my-module").wait_for()
