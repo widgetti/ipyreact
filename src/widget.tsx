@@ -29,6 +29,7 @@ import { transform } from "sucrase";
 import { ErrorBoundary, JupyterWidget } from "./components";
 import { Root } from "react-dom/client";
 import { ModelDestroyOptions } from "backbone";
+import { isEqual } from "lodash";
 
 declare function importShim<Default, Exports extends object>(
   specifier: string,
@@ -728,6 +729,24 @@ export class ReactModel extends DOMWidgetModel {
           }
           this.listenTo(this, `change:${key}`, updateChildren);
         }
+        // If props or children were updated while we were initializing the view,
+        // we want to do a rerender
+        const checkPropsChange = async () => {
+          const [currentProps, currentChildren] = await Promise.all([
+            replaceWidgetWithComponent(this.get("props"), get_model),
+            replaceWidgetWithComponent(
+              { children: this.get("children") },
+              get_model,
+            ),
+          ]);
+          if (!isEqual(currentProps, initialModelProps)) {
+            updateModelProps();
+          }
+          if (!isEqual(currentChildren, initialChildrenComponents)) {
+            updateChildren();
+          }
+        };
+        this.enqueue(checkPropsChange);
         return () => {
           this.stopListening(this, "change:props", updateModelProps);
           this.stopListening(this, "change:children", updateChildren);
