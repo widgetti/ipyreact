@@ -58,3 +58,15 @@ def test_children_ipywidgets(solara_test, page_session: playwright.sync_api.Page
     button.click()
     # not per se a direct child
     page_session.locator(".test-button >> .test-html").wait_for()
+
+
+def test_children_update_after_create(solara_test, page_session: playwright.sync_api.Page):
+    b = ipyreact.Widget(
+        _type="button",
+        children=["Initial"],
+        props={"class": "test-button"},
+    )
+    b.children = ["Updated"]
+
+    display(b)
+    page_session.locator(".test-button >> text=Updated").wait_for()
