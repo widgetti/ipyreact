@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "16.x"
 
@@ -27,7 +27,7 @@ jobs:
           yarn run lint:check
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
 
@@ -45,7 +45,7 @@ jobs:
         run: hatch build
 
       - name: Upload builds
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ipyreact-dist
           path: |
@@ -61,14 +61,14 @@ jobs:
         python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ipyreact-dist
 
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -82,14 +82,14 @@ jobs:
     needs: [build]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ipyreact-dist
 
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
 
@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload Test artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ipyreact-test-results-${{ github.run_number }}
           path: test-results
@@ -114,7 +114,7 @@ jobs:
     needs: [test, ui-test]
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ipyreact-dist
 
@@ -125,7 +125,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
 
