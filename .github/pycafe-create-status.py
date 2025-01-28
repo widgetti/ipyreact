@@ -33,9 +33,9 @@ page = ConfettiWidget()
 
 artifact_name = "ipyreact-dist"  # name given in the GitHub Actions workflow file for the artifact
 
-# your default requirements, the wheel version number (0.4.2) is bumped up for each new release using bump2version
+# your default requirements, the wheel version number (0.5.0) is bumped up for each new release using bump2version
 requirements = f"""solara
-https://py.cafe/gh/artifact/{repo_name}/actions/runs/{run_id}/{artifact_name}/ipyreact-0.4.2-py3-none-any.whl
+https://py.cafe/gh/artifact/{repo_name}/actions/runs/{run_id}/{artifact_name}/ipyreact-0.5.0-py3-none-any.whl
 """
 
 # GitHub Python API

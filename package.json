@@ -1,6 +1,6 @@
 {
   "name": "@widgetti/jupyter-react",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "React for ipywidgets that just works",
   "keywords": [
     "jupyter",
