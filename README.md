@@ -213,7 +213,7 @@ ipyreact.ValueWidget(
 
 ### Importing ReactJS based libraries
 
-Imported libraries must require/import `react` and `react-dom` packages provided by `ipyreact`, otherwise things will break (see [FAQ](#faq)). 
+Imported libraries must use the `react` and `react-dom` packages provided by `ipyreact`, otherwise things will break (see [FAQ](#faq)). 
 For esm.sh it can be achieved by adding `external=react,react-dom` to the URL:
 
 ```python
