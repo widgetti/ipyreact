@@ -211,9 +211,32 @@ ipyreact.ValueWidget(
 )
 ```
 
+### Importing ReactJS based libraries
+
+Imported libraries must require/import `react` and `react-dom` packages provided by `ipyreact`, otherwise things will break (see [FAQ](#faq)). 
+For esm.sh it can be achieved by adding `external=react,react-dom` to the URL:
+
+```python
+import ipyreact
+
+class Doodle(ipyreact.ValueWidget):
+    _esm = """
+    import { MeditatingDoodle } from "https://esm.sh/react-open-doodles?external=react,react-dom";
+    import * as React from "react";
+
+    export default ({value, setValue}) => (
+        <div style={{width: 300}}>
+            <MeditatingDoodle accent="#0057B7" ink="#FFDD00" />
+        </div>
+    );
+    """
+Doodle()
+```
+
+
 ### Import maps
 
-However, the above code now has a direct link to "https://esm.sh/canvas-confetti@1.6.0" which makes the code very specific to esm.sh.
+The above examples have direct links to esm.sh, e.g. "https://esm.sh/canvas-confetti@1.6.0". Which means version and CDN information is mebedded in every component's code.
 
 To address this, we also support [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) to
 write code more independant of where the modules come from.
@@ -230,7 +253,6 @@ define_import_map({
 })
 ```
 
-_Note that it is important to add `external=react,react-dom` for ReactJS based libraries, otherwise [esm.sh](https://esm.sh/#using-import-maps) would import ReactJS again_.
 
 Which means we can now write our ConfettiButton as:
 
@@ -464,7 +486,7 @@ React render tree.
 
 For instance, if you see `"Cannot read properties of null (reading 'useReducer')"` it means that you are loading in your own ReactJS version.
 
-If you use https://esh.sh, make sure you add `??external=react,react-dom` at the end of the url, so that your esm bundle doesn't include its own
+If you use https://esh.sh, make sure you add `?external=react,react-dom` at the end of the url, so that your esm bundle doesn't include its own
 ReactJS version, but uses the one provided with ipyreact.
 
 If you make your own bundle using esbuild, make sure to add the `--external:react --external:react-dom` flags on the CLI.
