@@ -484,7 +484,7 @@ React render tree.
 
 For instance, if you see `"Cannot read properties of null (reading 'useReducer')"` it means that you are loading in your own ReactJS version.
 
-If you use https://esh.sh, make sure you add `?external=react,react-dom` at the end of the url, so that your esm bundle doesn't include its own
+If you use https://esh.sh, make sure to add `?external=react,react-dom` at the end of the url, so that your esm bundle doesn't include its own
 ReactJS version, but uses the one provided with ipyreact.
 
 If you make your own bundle using esbuild, make sure to add the `--external:react --external:react-dom` flags on the CLI.
