@@ -224,7 +224,7 @@ class Doodle(ipyreact.ValueWidget):
     import { MeditatingDoodle } from "https://esm.sh/react-open-doodles?external=react,react-dom";
     import * as React from "react";
 
-    export default ({value, setValue}) => (
+    export default () => (
         <div style={{width: 300}}>
             <MeditatingDoodle accent="#0057B7" ink="#FFDD00" />
         </div>
@@ -233,10 +233,9 @@ class Doodle(ipyreact.ValueWidget):
 Doodle()
 ```
 
-
 ### Import maps
 
-The above examples have direct links to esm.sh, e.g. "https://esm.sh/canvas-confetti@1.6.0". Which means version and CDN information is mebedded in every component's code.
+The above examples have direct links to esm.sh, e.g. "https://esm.sh/canvas-confetti@1.6.0". Which means version and CDN information is embedded in every component's code.
 
 To address this, we also support [import maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) to
 write code more independant of where the modules come from.
@@ -252,7 +251,6 @@ define_import_map({
     "canvas-confetti": "https://esm.sh/canvas-confetti@1.6.0",
 })
 ```
-
 
 Which means we can now write our ConfettiButton as:
 
