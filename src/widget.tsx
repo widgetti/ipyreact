@@ -46,19 +46,31 @@ const moduleFunctions: any = {};
 const modules: any = {};
 
 function provideModule(moduleName: string, module: any) {
+  // consume the pending resolver (if any) so a LATER provide with new code
+  // (hot reload) overwrites the cached promise instead of re-settling an
+  // already-settled one (which is a silent no-op)
+  const pending = moduleFunctions[moduleName];
+  delete moduleFunctions[moduleName];
   if (module instanceof Error) {
-    if (moduleFunctions[moduleName]) {
-      moduleFunctions[moduleName].reject(module);
+    if (pending) {
+      pending.reject(module);
     } else {
       modules[moduleName] = Promise.reject(module);
     }
   } else {
-    if (moduleFunctions[moduleName]) {
-      moduleFunctions[moduleName].resolve(module);
-    } else {
-      modules[moduleName] = Promise.resolve(module);
+    if (pending) {
+      pending.resolve(module);
     }
+    modules[moduleName] = Promise.resolve(module);
   }
+}
+
+function invalidateModule(moduleName: string) {
+  // next requestModule waits for a fresh provideModule (hot reload); called
+  // synchronously on change:code so consumers created after the update never
+  // see the stale module
+  delete modules[moduleName];
+  delete moduleFunctions[moduleName];
 }
 
 function requestModule(moduleName: string) {
@@ -276,6 +288,11 @@ export class Module extends WidgetModel {
   initialize(attributes: any, options: any): void {
     super.initialize(attributes, options);
     this.addModule();
+    // hot reload: re-import when the kernel ships new module code
+    this.on("change:code change:dependencies", () => {
+      invalidateModule(this.get("name"));
+      this.addModule();
+    });
   }
   destroy(options?: any): any {
     if (this.codeUrl) {
@@ -314,7 +331,14 @@ export class Module extends WidgetModel {
       await this.updateImportMap();
       this.set("status", "Loading module...");
       let module = await importShim(this.codeUrl);
-      importShim.addImportMap({ imports: { [name]: this.codeUrl } });
+      try {
+        // remapping an already-resolved specifier throws (hot reload in the
+        // same page); the module registry is the source of truth, so only
+        // inter-module imports stay on the previous version
+        importShim.addImportMap({ imports: { [name]: this.codeUrl } });
+      } catch (e) {
+        console.warn(`ipyreact: could not (re)map import "${name}"`, e);
+      }
       this.set("status", "Loaded module!");
       provideModule(name, module);
     } catch (e) {
