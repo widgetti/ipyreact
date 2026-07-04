@@ -26,10 +26,10 @@ jobs:
         run: |
           yarn run lint:check
 
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: "3.11"
 
       - name: Install dependencies
         run: pip install hatch wheel "jupyterlab<4"
