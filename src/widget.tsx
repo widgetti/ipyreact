@@ -310,13 +310,14 @@ export class Module extends WidgetModel {
       _view_name: Module.view_name,
       _view_module: Module.view_module,
       _view_module_version: Module.view_module_version,
+      url: null,
     };
   }
   initialize(attributes: any, options: any): void {
     super.initialize(attributes, options);
     this.addModule();
     // hot reload: re-import when the kernel ships new module code
-    this.on("change:code change:dependencies", () => {
+    this.on("change:code change:url change:dependencies", () => {
       invalidateModule(this.get("name"));
       this.addModule();
     });
@@ -342,12 +343,13 @@ export class Module extends WidgetModel {
     const code = this.get("code");
     let name = this.get("name");
     try {
-      if (this.codeUrl) {
+      if (this.codeUrl && this.codeUrl.startsWith("blob:")) {
         URL.revokeObjectURL(this.codeUrl);
       }
-      this.codeUrl = URL.createObjectURL(
-        new Blob([code], { type: "text/javascript" }),
-      );
+      const moduleUrl: string | null = this.get("url");
+      this.codeUrl = moduleUrl
+        ? moduleUrl
+        : URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
       let dependencies = this.get("dependencies") || [];
       this.set(
         "status",
@@ -357,7 +359,7 @@ export class Module extends WidgetModel {
       await ensureImportShimLoaded();
       await this.updateImportMap();
       this.set("status", "Loading module...");
-      let module = await importShim(this.codeUrl);
+      let module = await importShim(this.codeUrl!);
       try {
         // remapping an already-resolved specifier throws (hot reload in the
         // same page); the module registry is the source of truth, so only
@@ -888,7 +890,7 @@ export class ReactModel extends DOMWidgetModel {
   private rejectComponent: (value: any) => void;
   private compiledCode: string | null = null;
   private compileError: any | null = null;
-  private codeUrl: string | null = null;
+  private codeUrl: string | null;
   // this used so that the WrapperComponent can be rendered synchronously,
   private currentComponentToWrapOrError: any = null;
   private queue: Promise<any>;
