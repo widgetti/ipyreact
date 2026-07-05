@@ -66,11 +66,14 @@ export function toModuleUrl(code: string) {
   return URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
 }
 
-export async function loadScript(type: string, src: string) {
+export async function loadScript(type: string, src: string, id?: string) {
   const script = document.createElement("script");
   script.type = type;
   script.src = src;
   script.defer = true;
+  if (id) {
+    script.id = id;
+  }
   document.head.appendChild(script);
   return new Promise<void>((resolve, reject) => {
     script.onload = () => {

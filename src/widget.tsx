@@ -19,17 +19,19 @@ import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 // @ts-ignore
 import "../css/widget.css";
-import { eventToObject, expose, loadScript, setUpMuiFixModule } from "./utils";
+import {
+  eventToObject,
+  expose,
+  loadScript,
+  setUpMuiFixModule,
+  toModuleUrl,
+} from "./utils";
+import esModuleShimsSource from "./es-module-shims-txt";
 import { MODULE_NAME, MODULE_VERSION } from "./version";
 // import * as Babel from '@babel/standalone';
-// TODO: find a way to ship es-module-shims with the widget
 // @ts-ignore
 // import 'es-module-shims';
 import { transform } from "sucrase";
-import { ErrorBoundary, JupyterWidget } from "./components";
-import { Root } from "react-dom/client";
-import { ModelDestroyOptions } from "backbone";
-import { isEqual } from "lodash";
 
 declare function importShim<Default, Exports extends object>(
   specifier: string,
@@ -41,6 +43,11 @@ declare namespace importShim {
   const addImportMap: (importMap: Partial<any>) => void;
   const getImportMap: () => any;
 }
+
+import { ErrorBoundary, JupyterWidget } from "./components";
+import { Root } from "react-dom/client";
+import { ModelDestroyOptions } from "backbone";
+import { isEqual } from "lodash";
 
 const moduleFunctions: any = {};
 const modules: any = {};
@@ -110,10 +117,30 @@ function requestImportMapConfiguration() {
 let importShimLoaded: any = null;
 async function ensureImportShimLoaded() {
   if (importShimLoaded == null) {
-    importShimLoaded = loadScript(
-      "module",
-      "https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js",
-    );
+    if ((window as any).importShim) {
+      importShimLoaded = Promise.resolve();
+    } else if (
+      document.querySelector(
+        "script[src*='es-module-shims'][type='module'], #es-module-shims",
+      )
+    ) {
+      // another library (e.g. ipyvue) already loads es-module-shims; wait
+      // for its copy instead of putting a second one on the page
+      importShimLoaded = (async () => {
+        while (!(window as any).importShim) {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      })();
+    } else {
+      // one shim per page, injected as a global script tag (the tag doubles
+      // as the cross-library mutex; the DOM check above and this append run
+      // synchronously) - no cdn request
+      importShimLoaded = loadScript(
+        "module",
+        toModuleUrl(esModuleShimsSource),
+        "es-module-shims",
+      );
+    }
   }
   return await importShimLoaded;
 }
