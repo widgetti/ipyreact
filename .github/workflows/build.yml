@@ -113,16 +113,23 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs: [test, ui-test]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      # npm trusted publishing (OIDC), replaces the NPM_TOKEN secret
+      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: ipyreact-dist
 
       - name: Install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: "16.x"
-          registry-url: "https://registry.npmjs.org"
+          # trusted publishing needs npm >= 11.5.1, which needs node >= 20
+          node-version: "22.x"
+
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@latest
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -146,5 +153,4 @@ jobs:
           if [[ $PRE_RELEASE == "true" ]]; then export TAG="next"; else export TAG="latest"; fi
           npm publish --tag ${TAG} --access public *.tgz
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           PRE_RELEASE: ${{ github.event.release.prerelease }}
