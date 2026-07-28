@@ -73,9 +73,9 @@ function provideModule(moduleName: string, module: any) {
 }
 
 function invalidateModule(moduleName: string) {
-  // next requestModule waits for a fresh provideModule (hot reload); called
-  // synchronously on change:code so consumers created after the update never
-  // see the stale module
+  // Next requestModule waits for a fresh provideModule. This is called
+  // synchronously for both replacement models and trait updates so consumers
+  // created during hot reload never see the stale module.
   delete modules[moduleName];
   delete moduleFunctions[moduleName];
 }
@@ -315,6 +315,10 @@ export class Module extends WidgetModel {
   }
   initialize(attributes: any, options: any): void {
     super.initialize(attributes, options);
+    // A kernel restart replaces the old Module model instead of updating its
+    // code trait. Invalidate synchronously so consumers created alongside the
+    // replacement wait for this model rather than using the cached module.
+    invalidateModule(this.get("name"));
     this.addModule();
     // hot reload: re-import when the kernel ships new module code
     this.on("change:code change:url change:dependencies", () => {
