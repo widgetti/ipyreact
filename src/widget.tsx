@@ -670,7 +670,12 @@ export class ReactModel extends DOMWidgetModel {
           throw new Error(`Error loading module`);
         }
       } else {
-        module = await importShim(moduleName);
+        // a Module widget's name comes from the registry: the import map
+        // keeps the first url when the page's shim rejects map overrides
+        // (ipyvue >= 3 sets esmsInitOptions without mapOverrides)
+        module = moduleGenerations[moduleName]
+          ? await requestModule(moduleName)
+          : await importShim(moduleName);
         if (!module) {
           throw new Error(`no module found with name ${moduleName}`);
         }
