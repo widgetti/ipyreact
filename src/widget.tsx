@@ -75,10 +75,15 @@ function provideModule(moduleName: string, module: any) {
 function invalidateModule(moduleName: string) {
   // Next requestModule waits for a fresh provideModule. This is called
   // synchronously for both replacement models and trait updates so consumers
-  // created during hot reload never see the stale module.
-  delete modules[moduleName];
-  delete moduleFunctions[moduleName];
+  // created during hot reload never see the stale module. A pending entry is
+  // kept: consumers already waiting for it get the module the new load provides.
+  if (!moduleFunctions[moduleName]) {
+    delete modules[moduleName];
+  }
 }
+
+// per module name, so a slow load of old code cannot overwrite newer code
+const moduleGenerations: { [name: string]: number } = {};
 
 function requestModule(moduleName: string) {
   if (!modules[moduleName]) {
@@ -346,6 +351,9 @@ export class Module extends WidgetModel {
   async addModule() {
     const code = this.get("code");
     let name = this.get("name");
+    const generation = (moduleGenerations[name] || 0) + 1;
+    moduleGenerations[name] = generation;
+    const isStale = () => moduleGenerations[name] !== generation;
     try {
       if (this.codeUrl && this.codeUrl.startsWith("blob:")) {
         URL.revokeObjectURL(this.codeUrl);
@@ -362,8 +370,14 @@ export class Module extends WidgetModel {
       await Promise.all(dependencies.map((x: any) => requestModule(x)));
       await ensureImportShimLoaded();
       await this.updateImportMap();
+      if (isStale()) {
+        return;
+      }
       this.set("status", "Loading module...");
       let module = await importShim(this.codeUrl!);
+      if (isStale()) {
+        return;
+      }
       try {
         // remapping an already-resolved specifier throws (hot reload in the
         // same page); the module registry is the source of truth, so only
@@ -375,6 +389,9 @@ export class Module extends WidgetModel {
       this.set("status", "Loaded module!");
       provideModule(name, module);
     } catch (e) {
+      if (isStale()) {
+        return;
+      }
       console.error(e);
       provideModule(name, e);
       this.set("status", "Error loading module: " + e);
