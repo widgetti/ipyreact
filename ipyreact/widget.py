@@ -95,7 +95,7 @@ class Widget(anywidget.AnyWidget):
     def _default_dependencies(self):
         import ipyreact.module
 
-        return ipyreact.module.get_module_names()
+        return [name for name in ipyreact.module.get_module_names() if ipyreact.module._is_live(name)]
 
 
 class ValueWidget(Widget, ValueWidgetClassic):

@@ -68,3 +68,14 @@ def test_define_module_redefine_keeps_dependencies():
     assert a2 is not a
     assert a2.dependencies == a.dependencies
     assert ipyreact.define_module("t-redef-a", code="export default 5", dependencies=[]).dependencies == []
+
+
+def test_widget_default_dependencies_skip_closed_modules():
+    closed = ipyreact.define_module("t-consumer-closed", code="export default 1")
+    ipyreact.define_module("t-consumer-live", code="export default 2")
+    closed.close()
+
+    deps = ipyreact.Widget()._dependencies
+
+    assert "t-consumer-live" in deps
+    assert "t-consumer-closed" not in deps
