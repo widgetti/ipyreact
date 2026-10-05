@@ -45,3 +45,16 @@ def test_module_recreated_widget_hot_reload(solara_test, page_session: playwrigh
     ipyreact.define_module("recreate-module", code_template % 2)
     display(ipyreact.ValueWidget(_module="recreate-module", _type="Label"))
     page_session.locator(".hot-widget >> text=version 2").wait_for()
+
+
+def test_module_code_change_while_pending(solara_test, page_session: playwright.sync_api.Page):
+    # A consumer that waits for a module whose code changes before the first
+    # load finishes must get the new code, and not wait forever.
+    module = ipyreact.module.Module(name="pending-module", code=code_template % 1, dependencies=["pending-module-dep"])
+    display(ipyreact.ValueWidget(_module="pending-module", _type="Label", _dependencies=["pending-module"]))
+    display(module)
+    page_session.locator("text=pending-module status: Waiting for dependencies: pending-module-dep").wait_for()
+
+    module.code = code_template % 2
+    ipyreact.module.Module(name="pending-module-dep", code="export default 1", dependencies=[])
+    page_session.locator(".hot-widget >> text=version 2").wait_for()
